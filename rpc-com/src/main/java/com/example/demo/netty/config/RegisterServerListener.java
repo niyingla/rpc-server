@@ -8,6 +8,9 @@ import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
 
 import java.net.Inet4Address;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p> RegirterServerAware </p>
@@ -22,13 +25,25 @@ public class RegisterServerListener implements ApplicationListener<ApplicationSt
 
   @Override
   public void onApplicationEvent(ApplicationStartedEvent applicationStartedEvent) {
-    try {
+
       log.info("开始注册到服务列表");
       // 注册到服务列表
       String serverName = applicationStartedEvent.getApplicationContext().getEnvironment().getProperty("spring.application.name");
-      RpcServerPool.registerServer(serverName, Inet4Address.getLocalHost().getHostAddress(), NettyServer.getPort());
-    } catch (Exception e) {
-      log.error("注册到服务列表失败", e);
-    }
+
+      //持续注册
+      Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread thread = new Thread(r, "schedule-register");
+        thread.setDaemon(true);
+        return thread;
+      }).scheduleWithFixedDelay(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            RpcServerPool.registerServer(serverName, Inet4Address.getLocalHost().getHostAddress(), NettyServer.getPort());
+          } catch (Exception e) {
+            log.error("注册到服务列表失败", e);
+          }
+        }
+      }, 1L, 60L, TimeUnit.SECONDS);//每60s上报数据
   }
 }

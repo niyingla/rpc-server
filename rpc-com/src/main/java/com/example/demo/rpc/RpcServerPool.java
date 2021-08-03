@@ -7,13 +7,11 @@ import com.example.demo.rpc.util.SpringUtil;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author pikaqiu
@@ -31,8 +29,8 @@ public class RpcServerPool  {
 
     public static void registerServer(String serverName, String ip, int port) {
         Jedis resource = SpringUtil.getBean(JedisPool.class).getResource();
-        resource.hset(serverPre + serverName, ip, port + "");
-        resource.expire(serverPre + serverName, 5 * 60 * 60);
+        resource.set(serverPre + serverName, ip + ":" + port);
+        resource.expire(serverPre + serverName, 90);
     }
 
 
@@ -40,27 +38,52 @@ public class RpcServerPool  {
     /**
      * 初始化所有连接
      */
-    public void initAllConnect() {
+    public RpcServerPool initAllConnect() {
         //根据注册列表 获取redis中存的 ip和端口
         loadServer();
 
         for (String serverName : serverDtoMap.keySet()) {
             RpcServerDto rpcServerDto = serverDtoMap.get(serverName);
-            for (RpcServerDto.Example example : rpcServerDto.getExamples()) {
-                //循环创建连接
-                log.info("创建连接 服务: {}：ip: {} ,port: {}", serverName, example.getIp(), example.getPort());
-                NettyClient nettyClient = new NettyClient();
-                nettyClient.initClient().createConnect(2, example.getIp(), example.getPort());
-
-                List<NettyClient> nettyClients = channelMap.get(serverName);
-
-                if (nettyClients == null) {
-                    nettyClients = new ArrayList<>();
-                    channelMap.put(serverName, nettyClients);
-                }
-                nettyClients.add(nettyClient);
-            }
+            //创建链接
+            createConnect(serverName, rpcServerDto);
         }
+
+        //清空初始服务缓存
+        serverDtoMap.clear();
+        return this;
+    }
+
+    /**
+     * 创建链接
+     * @param serverName
+     * @param rpcServerDto
+     */
+    private void createConnect(String serverName, RpcServerDto rpcServerDto) {
+        for (RpcServerDto.Example example : rpcServerDto.getExamples()) {
+            //循环创建连接
+            log.info("创建连接 服务: {}：ip: {} ,port: {}", serverName, example.getIp(), example.getPort());
+            NettyClient nettyClient = new NettyClient();
+            nettyClient.initClient().createConnect(2, example.getIp(), example.getPort());
+
+            List<NettyClient> nettyClients = channelMap.get(serverName);
+            if (nettyClients == null) {
+                nettyClients = new ArrayList<>();
+                channelMap.put(serverName, nettyClients);
+            }
+            nettyClients.add(nettyClient);
+        }
+    }
+
+    /**
+     * 重新链接
+     * @param serverName
+     */
+    public void reConnect(String serverName) {
+        channelMap.remove(serverName);
+        //获取注册列表
+        addAllServer(serverName);
+        //创建连接
+        createConnect(serverName, serverDtoMap.get(serverName));
     }
 
     /**
@@ -68,17 +91,21 @@ public class RpcServerPool  {
      *
      * @return
      */
-    public static ChannelFuture getChannelByServerName(String serverName) {
+    public ChannelFuture getChannelByServerName(String serverName) {
         //随机获取一个连接
         List<NettyClient> nettyClients = channelMap.get(serverName);
         ChannelFuture channelFuture = null;
+
+        if (CollectionUtils.isEmpty(nettyClients)) {
+            reConnect(serverName);
+        }
         for (; nettyClients.size() > 0; ) {
             channelFuture = nettyClients.get((int) (Math.random() * (nettyClients.size()))).getChannelFuture();
-
             if (channelFuture != null && channelFuture.channel().isActive()) {
                 break;
             } else {
                 nettyClients.remove(channelFuture);
+                return getChannelByServerName(serverName);
             }
         }
         return channelFuture;
@@ -120,12 +147,41 @@ public class RpcServerPool  {
      */
     public void loadServer() {
         for (String serverName : serverDtoMap.keySet()) {
-            Jedis resource = SpringUtil.getBean(JedisPool.class).getResource();
-            Map<String, String> serverMap = resource.hgetAll(serverPre + serverName);
-            for (Map.Entry<String, String> entry : serverMap.entrySet()) {
-                serverAdd(serverName, entry.getKey(), Integer.valueOf(entry.getValue()));
+            addAllServer(serverName);
+        }
+    }
+
+    /**
+     * 当前服务名链接所有服务
+     * @param serverName
+     */
+    private void addAllServer(String serverName) {
+        Jedis resource = null;
+        try {
+            resource = SpringUtil.getBean(JedisPool.class).getResource();
+            Set<String> keys = resource.keys(serverPre + serverName);
+            for (String key : keys) {
+                //添加一个服务练剑
+                addServer(serverName, resource, key);
+            }
+        } finally {
+            if (resource != null) {
+                resource.close();
             }
         }
     }
 
+    /**
+     * 添加一个服务练剑
+     * @param serverName
+     * @param resource
+     * @param key
+     */
+    private void addServer(String serverName, Jedis resource, String key) {
+        String ipAndPort = resource.get(key);
+        if (ipAndPort != null && ipAndPort.contains(":")) {
+            String[] split = ipAndPort.split(":");
+            serverAdd(serverName, split[0], Integer.valueOf(split[1]));
+        }
+    }
 }

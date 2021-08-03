@@ -52,11 +52,15 @@ public class AutoWiredFactory implements ApplicationListener<ApplicationStartedE
             rpcServerPool.addServerName(entry.getValue().serverName());
         }
         //开始链接
-        rpcServerPool.initAllConnect();
+        this.rpcServerPool.initAllConnect();
     }
 
     @Override
     public void onApplicationEvent(ApplicationStartedEvent applicationEvent) {
         autoWiredRpcProxy();
+    }
+
+    public RpcServerPool getRpcServerPool() {
+        return rpcServerPool;
     }
 }
