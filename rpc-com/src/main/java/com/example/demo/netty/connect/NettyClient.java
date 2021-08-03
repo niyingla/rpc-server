@@ -13,8 +13,10 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -84,7 +86,7 @@ public class NettyClient {
      * @return
      */
     public ChannelFuture getChannelFuture() {
-        return channelFutures.get((int) (Math.random() * (channelFutures.size())));
+        return CollectionUtils.isEmpty(channelFutures) ? null : channelFutures.get((int) (Math.random() * (channelFutures.size())));
     }
 
     /**

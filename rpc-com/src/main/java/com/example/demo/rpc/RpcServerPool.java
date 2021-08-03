@@ -16,7 +16,7 @@ import java.util.*;
 /**
  * @author pikaqiu
  */
-public class RpcServerPool  {
+public class RpcServerPool {
 
     static Logger log = LoggerFactory.getLogger(RpcClient.class.getName());
 
@@ -32,7 +32,6 @@ public class RpcServerPool  {
         resource.set(serverPre + serverName, ip + ":" + port);
         resource.expire(serverPre + serverName, 90);
     }
-
 
 
     /**
@@ -55,6 +54,7 @@ public class RpcServerPool  {
 
     /**
      * 创建链接
+     *
      * @param serverName
      * @param rpcServerDto
      */
@@ -76,6 +76,7 @@ public class RpcServerPool  {
 
     /**
      * 重新链接
+     *
      * @param serverName
      */
     public void reConnect(String serverName) {
@@ -92,19 +93,28 @@ public class RpcServerPool  {
      * @return
      */
     public ChannelFuture getChannelByServerName(String serverName) {
-        //随机获取一个连接
+        //获取服务连接池
         List<NettyClient> nettyClients = channelMap.get(serverName);
         ChannelFuture channelFuture = null;
-
+        //不存在重新链接
         if (CollectionUtils.isEmpty(nettyClients)) {
+            //todo 可以间隔一定时间才进行下一次链接
             reConnect(serverName);
         }
         for (; nettyClients.size() > 0; ) {
-            channelFuture = nettyClients.get((int) (Math.random() * (nettyClients.size()))).getChannelFuture();
+            //随件获取一个链接
+            int index = (int) (Math.random() * (nettyClients.size()));
+            channelFuture = nettyClients.get(index).getChannelFuture();
+            //链接存活 直接reture
             if (channelFuture != null && channelFuture.channel().isActive()) {
                 break;
             } else {
-                nettyClients.remove(channelFuture);
+                //清空无效链接
+                nettyClients.remove(index);
+                if (CollectionUtils.isEmpty(nettyClients)) {
+                    channelMap.remove(serverName);
+                }
+                //重新获取一次
                 return getChannelByServerName(serverName);
             }
         }
@@ -153,6 +163,7 @@ public class RpcServerPool  {
 
     /**
      * 当前服务名链接所有服务
+     *
      * @param serverName
      */
     private void addAllServer(String serverName) {
@@ -173,6 +184,7 @@ public class RpcServerPool  {
 
     /**
      * 添加一个服务练剑
+     *
      * @param serverName
      * @param resource
      * @param key
