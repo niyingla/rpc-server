@@ -7,11 +7,6 @@ import com.example.demo.rpc.util.SpringUtil;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.annotation.Order;
-import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -23,9 +18,7 @@ import java.util.Map;
 /**
  * @author pikaqiu
  */
-@Order(0)
-@Component
-public class RpcServerPool implements ApplicationContextAware {
+public class RpcServerPool  {
 
     static Logger log = LoggerFactory.getLogger(RpcClient.class.getName());
 
@@ -133,11 +126,6 @@ public class RpcServerPool implements ApplicationContextAware {
                 serverAdd(serverName, entry.getKey(), Integer.valueOf(entry.getValue()));
             }
         }
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        initAllConnect();
     }
 
 }

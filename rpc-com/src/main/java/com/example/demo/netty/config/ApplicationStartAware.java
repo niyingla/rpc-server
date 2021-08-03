@@ -7,12 +7,12 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-@Order(-2)
 @Component
-public class ApplicationStartListener implements ApplicationContextAware {
+@Order(-2)
+public class ApplicationStartAware implements ApplicationContextAware {
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        NettyServer.start();
+        new Thread(() -> NettyServer.start()).start();
     }
 }

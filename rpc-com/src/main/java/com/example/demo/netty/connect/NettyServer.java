@@ -2,8 +2,6 @@ package com.example.demo.netty.connect;
 
 import com.example.demo.netty.code.MarshallingCodeCFactory;
 import com.example.demo.netty.handler.ServerHeartBeatHandler;
-import com.example.demo.rpc.RpcServerPool;
-import com.example.demo.rpc.util.SpringUtil;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
@@ -15,7 +13,6 @@ import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.Inet4Address;
 import java.util.Random;
 
 /**
@@ -27,8 +24,11 @@ import java.util.Random;
 public class NettyServer {
     static Logger log = LoggerFactory.getLogger(NettyClient.class.getName());
 
+    private static int port;
+
     EventLoopGroup pGroup = new NioEventLoopGroup();
     EventLoopGroup cGroup = new NioEventLoopGroup();
+
 
     /**
      * 初始化服务端
@@ -58,18 +58,10 @@ public class NettyServer {
                         sc.pipeline().addLast(new ServerHeartBeatHandler());
                     }
                 });
-        int port = new Random().nextInt(20000) + 8000;
+        port = new Random().nextInt(20000) + 8000;
         ChannelFuture cf = b.bind(port).sync();
-
-//        ChannelFuture cf1 = b.bind(7002).sync();
         log.info("初始化服务端完成。。。");
-        String serverName = SpringUtil.getApplicationContext().getEnvironment().getProperty("spring.application.name");
-        RpcServerPool.registerServer(serverName, Inet4Address.getLocalHost().getHostAddress(), port);
-        //todo 注册到服务列表
         cf.channel().closeFuture().sync();
-
-//        cf1.channel().closeFuture().sync();
-
     }
 
 
@@ -79,6 +71,10 @@ public class NettyServer {
     public void shotDown() {
         pGroup.shutdownGracefully();
         cGroup.shutdownGracefully();
+    }
+
+    public static int getPort() {
+        return port;
     }
 
     /**

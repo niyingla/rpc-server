@@ -12,7 +12,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,7 +21,6 @@ import java.util.Map;
 @Component
 public class AutoWiredFactory implements ApplicationListener<ApplicationStartedEvent> {
 
-    @Autowired
     private RpcServerPool rpcServerPool;
 
     /**
@@ -44,12 +42,17 @@ public class AutoWiredFactory implements ApplicationListener<ApplicationStartedE
      * 通过扫描获取所有rpc代理类
      */
     public void autoWiredRpcProxy() {
+        //初始连接池
+        rpcServerPool = new RpcServerPool();
+
         for (Map.Entry<Class, RpcServerCase> entry : rpcInterFace.entrySet()) {
             //设置代理对象
             setBean(entry.getKey());
             //写入连接服务列表
             rpcServerPool.addServerName(entry.getValue().serverName());
         }
+        //开始链接
+        rpcServerPool.initAllConnect();
     }
 
     @Override
