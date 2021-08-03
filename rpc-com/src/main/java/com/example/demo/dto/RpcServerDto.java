@@ -10,8 +10,6 @@ import java.util.List;
 /**
  * @author pikaqiu
  */
-@NoArgsConstructor
-@AllArgsConstructor
 public class RpcServerDto {
 
     private String name;
