@@ -2,8 +2,6 @@ package com.example.demo.dto;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.CompletableFuture;
-
 /**
  * @program: demo
  * @description:
@@ -25,10 +23,10 @@ public class SyncResult {
             try {
                 synchronized (lock) {
                     //释放锁
-                    lock.wait();
+                    lock.wait(3000);
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                throw new RuntimeException("报错了");
             }
         }
         return Data;

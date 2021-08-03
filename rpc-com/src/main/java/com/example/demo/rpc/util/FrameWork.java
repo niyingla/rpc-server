@@ -4,6 +4,7 @@ import com.example.demo.util.ClassUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -12,6 +13,7 @@ import java.lang.reflect.Method;
 /**
  * @author pikaqiu
  */
+@Component
 public class FrameWork implements ApplicationContextAware {
 
     private static ApplicationContext applicationContext;
