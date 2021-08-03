@@ -29,7 +29,8 @@ public class RpcClient {
         RpcRequestDto rpcRequestDto = new RpcRequestDto(UUID.randomUUID().toString(), interfaceClass.getName(), method, args);
         ChannelFuture channel = RpcServerPool.getChannelByServerName(rpcServerCase.serverName());
         log.info("发起远程请求 请求目标服务：{} 目标方法：{}.{} 参数:{}", rpcServerCase.serverName(), interfaceClass.getName(), method, JSON.toJSONString(args));
-        return ChannelUtils.sendChannelRpcRequest(channel, rpcRequestDto);
+        Object result = ChannelUtils.sendChannelRpcRequest(channel, rpcRequestDto);
+        return result;
     }
 
 }
