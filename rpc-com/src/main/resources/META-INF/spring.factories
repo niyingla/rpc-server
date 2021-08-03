@@ -1,0 +1,9 @@
+## ApplicationListener 监听启动
+#org.springframework.context.ApplicationListener=\
+#com.example.demo.rpc.util.FrameWork,\
+#com.example.demo.rpc.RpcServerPool,\
+#com.example.demo.netty.config.ApplicationStartListener\
+
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.example.demo.netty.config.JedisRedisConfig
+
+
