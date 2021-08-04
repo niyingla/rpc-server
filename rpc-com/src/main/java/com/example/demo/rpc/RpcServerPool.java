@@ -29,8 +29,9 @@ public class RpcServerPool {
 
     public static void registerServer(String serverName, String ip, int port) {
         Jedis resource = SpringUtil.getBean(JedisPool.class).getResource();
-        resource.set(serverPre + serverName, ip + ":" + port);
-        resource.expire(serverPre + serverName, 90);
+        String key = serverPre + serverName + ":" + ip + ":" + port;
+        resource.set(key, ip + ":" + port);
+        resource.expire(key, 90);
     }
 
 
@@ -170,7 +171,7 @@ public class RpcServerPool {
         Jedis resource = null;
         try {
             resource = SpringUtil.getBean(JedisPool.class).getResource();
-            Set<String> keys = resource.keys(serverPre + serverName);
+            Set<String> keys = resource.keys(serverPre + serverName+":*");
             for (String key : keys) {
                 //添加一个服务练剑
                 addServer(serverName, resource, key);
