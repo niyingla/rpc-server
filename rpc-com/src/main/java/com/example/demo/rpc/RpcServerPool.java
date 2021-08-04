@@ -63,7 +63,7 @@ public class RpcServerPool {
             //循环创建连接
             log.info("创建连接 服务: {}：ip: {} ,port: {}", serverName, example.getIp(), example.getPort());
             NettyClient nettyClient = new NettyClient();
-            nettyClient.initClient().createConnect(2, example.getIp(), example.getPort());
+            nettyClient.initClient().createConnect(3, example.getIp(), example.getPort());
 
             List<NettyClient> nettyClients = channelMap.get(serverName);
             if (nettyClients == null) {

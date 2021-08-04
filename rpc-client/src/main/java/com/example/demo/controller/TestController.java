@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 @RestController
 @RequestMapping("test")
 public class TestController {
@@ -19,5 +22,11 @@ public class TestController {
     @GetMapping("getCompareDto")
     public CompareDto getCompareDto(@RequestParam String type){
         return userInfoService.getCompareDto(type);
+    }
+
+    @GetMapping("testQrCode")
+    public void testQrCode(HttpServletRequest request, HttpServletResponse response)throws Exception{
+        String path = "https://work.weixin.qq.com/ct/wcdec65609a06992de8b61daebe071262d8e";
+        response.sendRedirect(path);
     }
 }
