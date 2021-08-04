@@ -5,6 +5,7 @@ import com.example.demo.netty.connect.NettyClient;
 import com.example.demo.rpc.util.RpcClient;
 import com.example.demo.rpc.util.SpringUtil;
 import io.netty.channel.ChannelFuture;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -22,7 +23,7 @@ public class RpcServerPool {
 
     private final Map<String, RpcServerDto> serverDtoMap = new HashMap<>();
 
-    private static Map<String, List<NettyClient>> channelMap = new HashMap<>();
+    private static Map<String, List<ImmutablePair<String,NettyClient>>> channelMap = new HashMap<>();
 
 
     private static String serverPre = "server:pre:";
@@ -65,13 +66,12 @@ public class RpcServerPool {
             log.info("创建连接 服务: {}：ip: {} ,port: {}", serverName, example.getIp(), example.getPort());
             NettyClient nettyClient = new NettyClient();
             nettyClient.initClient().createConnect(3, example.getIp(), example.getPort());
-
-            List<NettyClient> nettyClients = channelMap.get(serverName);
+            List<ImmutablePair<String, NettyClient>> nettyClients = channelMap.get(serverName);
             if (nettyClients == null) {
                 nettyClients = new ArrayList<>();
                 channelMap.put(serverName, nettyClients);
             }
-            nettyClients.add(nettyClient);
+            nettyClients.add(new ImmutablePair(example.getIp() + ":" + example.getPort(), nettyClient));
         }
     }
 
@@ -95,7 +95,7 @@ public class RpcServerPool {
      */
     public ChannelFuture getChannelByServerName(String serverName) {
         //获取服务连接池
-        List<NettyClient> nettyClients = channelMap.get(serverName);
+        List<ImmutablePair<String,NettyClient>> nettyClients = channelMap.get(serverName);
         ChannelFuture channelFuture = null;
         //不存在重新链接
         if (CollectionUtils.isEmpty(nettyClients)) {
@@ -105,7 +105,7 @@ public class RpcServerPool {
         for (; nettyClients.size() > 0; ) {
             //随件获取一个链接
             int index = (int) (Math.random() * (nettyClients.size()));
-            channelFuture = nettyClients.get(index).getChannelFuture();
+            channelFuture = nettyClients.get(index).getRight().getChannelFuture();
             //链接存活 直接reture
             if (channelFuture != null && channelFuture.channel().isActive()) {
                 break;

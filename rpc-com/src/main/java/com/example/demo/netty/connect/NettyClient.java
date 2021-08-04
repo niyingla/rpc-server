@@ -2,7 +2,6 @@ package com.example.demo.netty.connect;
 
 import com.example.demo.netty.code.MarshallingCodeCFactory;
 import com.example.demo.netty.handler.ResultHandler;
-import com.example.demo.rpc.util.RpcClient;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
@@ -16,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
