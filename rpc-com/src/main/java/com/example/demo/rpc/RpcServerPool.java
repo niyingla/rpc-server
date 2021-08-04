@@ -72,14 +72,15 @@ public class RpcServerPool {
      */
     public RpcServerPool initAllConnect() {
         //根据注册列表 获取redis中存的 ip和端口
+        log.info("开始获取服务列表...");
         loadServer();
-
+        log.info("开始连接服务列表...");
         for (String serverName : serverDtoMap.keySet()) {
             RpcServerDto rpcServerDto = serverDtoMap.get(serverName);
             //创建链接
             createConnect(serverName, rpcServerDto);
         }
-
+        log.info("连接服务完成...");
         //清空初始服务缓存
         serverDtoMap.clear();
         return this;
