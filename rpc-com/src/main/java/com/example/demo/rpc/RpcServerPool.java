@@ -25,9 +25,30 @@ public class RpcServerPool {
 
     private static Map<String, List<ImmutablePair<String,NettyClient>>> channelMap = new HashMap<>();
 
-
     private static String serverPre = "server:pre:";
 
+    private static volatile RpcServerPool instance;
+
+    private RpcServerPool() {
+    }
+
+    public static RpcServerPool getInstance() {
+        if (instance == null) {
+            synchronized (RpcServerPool.class) {
+                if (instance == null) {
+                    instance = new RpcServerPool();
+                }
+            }
+        }
+        return instance;
+    }
+
+    /**
+     * 注册服务
+     * @param serverName
+     * @param ip
+     * @param port
+     */
     public static void registerServer(String serverName, String ip, int port) {
         Jedis resource = SpringUtil.getBean(JedisPool.class).getResource();
         String key = serverPre + serverName + ":" + ip + ":" + port;

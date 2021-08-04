@@ -4,13 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.example.demo.annotation.RpcServerCase;
 import com.example.demo.dto.RpcRequestDto;
 import com.example.demo.rpc.RpcServerPool;
-import com.example.demo.rpc.factory.AutoWiredFactory;
 import com.example.demo.util.ChannelUtils;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -30,7 +27,7 @@ public class RpcClient {
         //参数对象转换成能字节  远程调用
         RpcServerCase rpcServerCase = (RpcServerCase) interfaceClass.getAnnotation(RpcServerCase.class);
         RpcRequestDto rpcRequestDto = new RpcRequestDto(UUID.randomUUID().toString(), interfaceClass.getName(), method, args);
-        ChannelFuture channel = SpringUtil.getBean(AutoWiredFactory.class).getRpcServerPool().getChannelByServerName(rpcServerCase.serverName());
+        ChannelFuture channel = RpcServerPool.getInstance().getChannelByServerName(rpcServerCase.serverName());
         if (channel == null) {
             throw new RuntimeException("服务不存在");
         }

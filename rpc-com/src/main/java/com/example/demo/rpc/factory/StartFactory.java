@@ -19,12 +19,10 @@ import java.util.Map;
  */
 @Order(-1)
 @Component
-public class AutoWiredFactory implements ApplicationListener<ApplicationStartedEvent> {
-
-    private RpcServerPool rpcServerPool;
+public class StartFactory implements ApplicationListener<ApplicationStartedEvent> {
 
     /**
-     * 需要加載实例列表
+     * 需要加載实例列表和服务列表
      */
     private Map<Class, RpcServerCase> rpcInterFace = ScannerUtils.getAnnotations(RpcServerCase.class, "com.example.demo");
 
@@ -43,7 +41,7 @@ public class AutoWiredFactory implements ApplicationListener<ApplicationStartedE
      */
     public void autoWiredRpcProxy() {
         //初始连接池
-        rpcServerPool = new RpcServerPool();
+        RpcServerPool rpcServerPool = RpcServerPool.getInstance();
 
         for (Map.Entry<Class, RpcServerCase> entry : rpcInterFace.entrySet()) {
             //设置代理对象
@@ -52,15 +50,11 @@ public class AutoWiredFactory implements ApplicationListener<ApplicationStartedE
             rpcServerPool.addServerName(entry.getValue().serverName());
         }
         //开始链接
-        this.rpcServerPool.initAllConnect();
+        rpcServerPool.initAllConnect();
     }
 
     @Override
     public void onApplicationEvent(ApplicationStartedEvent applicationEvent) {
         autoWiredRpcProxy();
-    }
-
-    public RpcServerPool getRpcServerPool() {
-        return rpcServerPool;
     }
 }
