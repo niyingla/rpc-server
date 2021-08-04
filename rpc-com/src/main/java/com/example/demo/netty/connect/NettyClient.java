@@ -61,12 +61,13 @@ public class NettyClient {
 
     /**
      * 创建连接池内连接
+     *
      * @param count
      * @param ip
      * @param port
      * @return
      */
-    public NettyClient createConnect(int count, String ip, int port)  {
+    public NettyClient createConnect(int count, String ip, int port, List<ChannelFuture> channelFutures) {
         for (int i = 0; i < count; i++) {
             Runnable runnable = () -> {
                 try {

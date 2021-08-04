@@ -5,7 +5,6 @@ import com.example.demo.netty.connect.NettyClient;
 import com.example.demo.rpc.util.RpcClient;
 import com.example.demo.rpc.util.SpringUtil;
 import io.netty.channel.ChannelFuture;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -25,7 +24,7 @@ public class RpcServerPool {
     private final Map<String, RpcServerDto> serverDtoMap = new HashMap<>();
 
     //key 服务名 value 链接信息
-    private static Map<String, List<ImmutablePair<String,NettyClient>>> channelMap = new HashMap<>();
+    private static Map<String, List<ChannelFuture>> channelMap = new HashMap<>();
 
     private static String serverPre = "server:pre:";
 
@@ -97,13 +96,11 @@ public class RpcServerPool {
             //循环创建连接
             log.info("创建连接 服务: {}：ip: {} ,port: {}", serverName, example.getIp(), example.getPort());
             NettyClient nettyClient = NettyClient.getNewInstance();
-            nettyClient.initClient().createConnect(3, example.getIp(), example.getPort());
-            List<ImmutablePair<String, NettyClient>> nettyClients = channelMap.get(serverName);
-            if (nettyClients == null) {
-                nettyClients = new ArrayList<>();
-                channelMap.put(serverName, nettyClients);
+            List<ChannelFuture> futureList = channelMap.getOrDefault(serverName, new ArrayList<>());
+            nettyClient.initClient().createConnect(3, example.getIp(), example.getPort(), futureList);
+            if (!channelMap.containsKey(serverName)) {
+                channelMap.put(serverName, futureList);
             }
-            nettyClients.add(new ImmutablePair(example.getIp() + ":" + example.getPort(), nettyClient));
         }
     }
 
@@ -127,24 +124,24 @@ public class RpcServerPool {
      */
     public ChannelFuture getChannelByServerName(String serverName) {
         //获取服务连接池
-        List<ImmutablePair<String,NettyClient>> nettyClients = channelMap.get(serverName);
+        List<ChannelFuture> channelFutures = channelMap.get(serverName);
         ChannelFuture channelFuture = null;
         //不存在重新链接
-        if (CollectionUtils.isEmpty(nettyClients)) {
+        if (CollectionUtils.isEmpty(channelFutures)) {
             //todo 可以间隔一定时间才进行下一次链接
             reConnect(serverName);
         }
-        for (; nettyClients.size() > 0; ) {
+        for (; channelFutures.size() > 0; ) {
             //随件获取一个链接
-            int index = (int) (Math.random() * (nettyClients.size()));
-            channelFuture = nettyClients.get(index).getRight().getChannelFuture();
+            int index = (int) (Math.random() * (channelFutures.size()));
+            channelFuture = channelFutures.get(index);
             //链接存活 直接reture
             if (channelFuture != null && channelFuture.channel().isActive()) {
                 break;
             } else {
                 //清空无效链接
-                nettyClients.remove(index);
-                if (CollectionUtils.isEmpty(nettyClients)) {
+                channelFutures.remove(index);
+                if (CollectionUtils.isEmpty(channelFutures)) {
                     channelMap.remove(serverName);
                 }
                 //重新获取一次
