@@ -135,14 +135,16 @@ public class RpcServerPool {
             //随件获取一个链接
             int index = (int) (Math.random() * (channelFutures.size()));
             channelFuture = channelFutures.get(index);
-            //链接存活 直接reture
+            //链接存活 直接return
             if (channelFuture != null && channelFuture.channel().isActive()) {
                 break;
             } else {
-                //清空无效链接
-                channelFutures.remove(index);
-                if (CollectionUtils.isEmpty(channelFutures)) {
-                    channelMap.remove(serverName);
+                synchronized (RpcServerPool.class) {
+                    //清空无效链接
+                    channelFutures.remove(index);
+                    if (CollectionUtils.isEmpty(channelFutures)) {
+                        channelMap.remove(serverName);
+                    }
                 }
                 //重新获取一次
                 return getChannelByServerName(serverName);
