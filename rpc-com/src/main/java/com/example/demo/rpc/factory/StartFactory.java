@@ -29,10 +29,15 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
     @Autowired
     private DefaultListableBeanFactory defaultListableBeanFactory;
 
-    public void setBean(Class interfaceServer) {
-        ProxyFactory proxyFactory = new ProxyFactory();
-        Object interfaceInfo = proxyFactory.getInterfaceInfo(interfaceServer);
-        defaultListableBeanFactory.registerSingleton(StringUtils.lowerFirst(interfaceServer.getSimpleName()), interfaceInfo);
+    /**
+     * 根据接口生成代理对象
+     * @param interfaceServer
+     */
+    public <T> void setBean(Class<T> interfaceServer) {
+        //生成代理对象
+        T proxyObject = ProxyFactory.getInterfaceInfo(interfaceServer);
+        //注册对象到spring
+        defaultListableBeanFactory.registerSingleton(StringUtils.lowerFirst(interfaceServer.getSimpleName()), proxyObject);
     }
 
 
@@ -42,7 +47,7 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
     public void autoWiredRpcProxy() {
         //初始连接池
         RpcServerPool rpcServerPool = RpcServerPool.getInstance();
-
+        //循环注入代理对象到spring 并将调用服务写到列表
         for (Map.Entry<Class, RpcServerCase> entry : rpcInterFace.entrySet()) {
             //设置代理对象
             setBean(entry.getKey());
@@ -53,6 +58,10 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
         rpcServerPool.initAllConnect();
     }
 
+    /**
+     * 启动客户端服务
+     * @param applicationEvent
+     */
     @Override
     public void onApplicationEvent(ApplicationStartedEvent applicationEvent) {
         autoWiredRpcProxy();

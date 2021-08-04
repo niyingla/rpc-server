@@ -20,14 +20,13 @@ public class ChannelUtils {
   static Logger log = LoggerFactory.getLogger(NettyClient.class.getName());
 
     /**
-     * 发送远程请求
+     * 发送远程请求方法
      *
      * @param channel
      * @param rpcRequestDto
      * @return
      */
     public static Object sendChannelRpcRequest(ChannelFuture channel, RpcRequestDto rpcRequestDto) {
-
       try {
         //写入结果结合
         CompletableFuture result = FutureResultNew.getResult(rpcRequestDto.getRequestId());

@@ -21,8 +21,10 @@ public class RpcServerPool {
 
     static Logger log = LoggerFactory.getLogger(RpcClient.class.getName());
 
+    //key 服务名 value 初始化链接参数
     private final Map<String, RpcServerDto> serverDtoMap = new HashMap<>();
 
+    //key 服务名 value 链接信息
     private static Map<String, List<ImmutablePair<String,NettyClient>>> channelMap = new HashMap<>();
 
     private static String serverPre = "server:pre:";
@@ -167,11 +169,10 @@ public class RpcServerPool {
      * @param serverName
      */
     public void addServerName(String serverName) {
-        RpcServerDto serverDto = serverDtoMap.get(serverName);
-        if (serverDto == null) {
-            serverDto = new RpcServerDto(serverName);
+        if (!channelMap.containsKey(serverName)) {
+            RpcServerDto serverDto = new RpcServerDto(serverName);
+            serverDtoMap.put(serverName, serverDto);
         }
-        serverDtoMap.put(serverName, serverDto);
     }
 
     /**

@@ -10,7 +10,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * @create: 2019-08-12 16:19
  **/
 public class FutureResultNew {
-
+    /**
+     * 结果获取map 实际可以根据实例
+     */
     public static ConcurrentHashMap<String, CompletableFuture> concurrentHashMap = new ConcurrentHashMap();
 
     /**
