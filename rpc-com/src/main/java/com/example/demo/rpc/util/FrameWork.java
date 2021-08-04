@@ -1,6 +1,9 @@
 package com.example.demo.rpc.util;
 
+import com.example.demo.netty.config.RegisterServerListener;
 import com.example.demo.util.ClassUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -18,6 +21,8 @@ public class FrameWork implements ApplicationContextAware {
 
     private static ApplicationContext applicationContext;
 
+
+    static Logger log = LoggerFactory.getLogger(RegisterServerListener.class.getName());
 
     /**
      *  通过反射调用目标方法
@@ -39,8 +44,7 @@ public class FrameWork implements ApplicationContextAware {
         Class[] classType = ClassUtils.getClassType(param);
         Method method = clazz.getMethod(methodStr, classType);
         //反射执行方法
-        Object invokeResult = method.invoke(contextBean, param);
-        return invokeResult;
+        return method.invoke(contextBean, param);
 
     }
 

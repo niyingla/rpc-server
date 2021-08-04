@@ -9,7 +9,6 @@ import org.springframework.context.ApplicationListener;
 
 import java.net.Inet4Address;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -25,12 +24,11 @@ public class RegisterServerListener implements ApplicationListener<ApplicationSt
 
   @Override
   public void onApplicationEvent(ApplicationStartedEvent applicationStartedEvent) {
-
       log.info("开始注册到服务列表");
       // 注册到服务列表
       String serverName = applicationStartedEvent.getApplicationContext().getEnvironment().getProperty("spring.application.name");
 
-      //持续注册
+      //持续注册 每60s注册一次
       Executors.newSingleThreadScheduledExecutor(r -> {
         Thread thread = new Thread(r, "schedule-register");
         thread.setDaemon(true);
@@ -44,6 +42,6 @@ public class RegisterServerListener implements ApplicationListener<ApplicationSt
             log.error("注册到服务列表失败", e);
           }
         }
-      }, 1L, 60L, TimeUnit.SECONDS);//每60s上报数据
+      }, 0L, 60L, TimeUnit.SECONDS);
   }
 }

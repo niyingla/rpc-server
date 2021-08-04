@@ -2,7 +2,6 @@ package com.example.demo.netty.result;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @program: demo
@@ -11,7 +10,9 @@ import java.util.concurrent.TimeUnit;
  * @create: 2019-08-12 16:19
  **/
 public class FutureResultNew {
-
+    /**
+     * 结果获取map 实际可以根据实例
+     */
     public static ConcurrentHashMap<String, CompletableFuture> concurrentHashMap = new ConcurrentHashMap();
 
     /**
@@ -20,11 +21,12 @@ public class FutureResultNew {
      * @param requestId
      * @return
      */
-    public static Object getResult(String requestId, CompletableFuture future) throws Exception {
+    public static CompletableFuture getResult(String requestId) throws Exception {
+        CompletableFuture future = new CompletableFuture();
         //创建结果包装类
         concurrentHashMap.put(requestId, future);
         //获取结果
-        return future.get(5, TimeUnit.SECONDS);
+        return future;
     }
 
     /**

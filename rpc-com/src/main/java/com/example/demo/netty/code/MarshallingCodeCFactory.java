@@ -13,6 +13,11 @@ import org.jboss.marshalling.MarshallingConfiguration;
  */
 public final class MarshallingCodeCFactory {
 
+
+  /**
+   * 解码
+   * @return
+   */
   public static MarshallingDecoder buildMarshallingDecoder() {
     //1、首先通过编组工具类的精通方法获取编组实例对象参数序列标识创建的是java序列化工厂对象。
     final MarshallerFactory marshallerFactory = Marshalling.getProvidedMarshallerFactory("serial");
@@ -26,12 +31,16 @@ public final class MarshallingCodeCFactory {
     return decoder;
   }
 
+  /**
+   * 编码
+   * @return
+   */
   public static MarshallingEncoder buildMarshallingEncoder() {
     final MarshallerFactory marshallerFactory = Marshalling.getProvidedMarshallerFactory("serial");
     final MarshallingConfiguration configuration = new MarshallingConfiguration();
     configuration.setVersion(5);
     MarshallerProvider provider = new DefaultMarshallerProvider(marshallerFactory, configuration);
-//5、构建Netty的MarshallingEncoder对象，MarshallingEncoder用于实现序列化接口的POJO对象序列化为二进制数组
+    //5、构建Netty的MarshallingEncoder对象，MarshallingEncoder用于实现序列化接口的POJO对象序列化为二进制数组
     MarshallingEncoder encoder = new MarshallingEncoder(provider);
     return encoder;
   }

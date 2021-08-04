@@ -2,7 +2,6 @@ package com.example.demo.netty.connect;
 
 import com.example.demo.netty.code.MarshallingCodeCFactory;
 import com.example.demo.netty.handler.ResultHandler;
-import com.example.demo.rpc.util.RpcClient;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
@@ -16,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -24,12 +22,16 @@ import java.util.List;
  * @author pikaqiu
  */
 public class NettyClient {
-    static Logger log = LoggerFactory.getLogger(NettyClient.class.getName());
 
+    static Logger log = LoggerFactory.getLogger(NettyClient.class.getName());
     private Bootstrap b = new Bootstrap();
     private EventLoopGroup group = new NioEventLoopGroup();
     private List<ChannelFuture> channelFutures = new ArrayList<>();
 
+
+    public static NettyClient getNewInstance(){
+        return new NettyClient();
+    }
 
     /**
      * 初始化客户端
@@ -59,12 +61,13 @@ public class NettyClient {
 
     /**
      * 创建连接池内连接
+     *
      * @param count
      * @param ip
      * @param port
      * @return
      */
-    public NettyClient createConnect(int count, String ip, int port)  {
+    public NettyClient createConnect(int count, String ip, int port, List<ChannelFuture> channelFutures) {
         for (int i = 0; i < count; i++) {
             Runnable runnable = () -> {
                 try {
@@ -94,14 +97,6 @@ public class NettyClient {
      */
     public void close() {
         group.shutdownGracefully();
-    }
-
-    /**
-     * 开始连接
-     */
-    public static void start(){
-        log.info("开始客户端。。。。");
-        new NettyClient().initClient();
     }
 
 }
