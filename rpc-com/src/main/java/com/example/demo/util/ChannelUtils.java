@@ -27,10 +27,14 @@ public class ChannelUtils {
      * @return
      */
     public static Object sendChannelRpcRequest(ChannelFuture channel, RpcRequestDto rpcRequestDto) {
-      channel.channel().writeAndFlush(rpcRequestDto);
-      //等待结果
+
       try {
-        return FutureResultNew.getResult(rpcRequestDto.getRequestId(), new CompletableFuture());
+        //写入结果结合
+        CompletableFuture result = FutureResultNew.getResult(rpcRequestDto.getRequestId());
+        //发送通道数据
+        channel.channel().writeAndFlush(rpcRequestDto);
+        //等待结果
+        return result.get();
       } catch (Exception e) {
         log.error("获取结果报错：", e);
         throw new RuntimeException("获取结果报错");

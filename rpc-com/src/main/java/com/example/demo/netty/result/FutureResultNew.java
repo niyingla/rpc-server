@@ -2,7 +2,6 @@ package com.example.demo.netty.result;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @program: demo
@@ -20,11 +19,12 @@ public class FutureResultNew {
      * @param requestId
      * @return
      */
-    public static Object getResult(String requestId, CompletableFuture future) throws Exception {
+    public static CompletableFuture getResult(String requestId) throws Exception {
+        CompletableFuture future = new CompletableFuture();
         //创建结果包装类
         concurrentHashMap.put(requestId, future);
         //获取结果
-        return future.get(5, TimeUnit.SECONDS);
+        return future;
     }
 
     /**
