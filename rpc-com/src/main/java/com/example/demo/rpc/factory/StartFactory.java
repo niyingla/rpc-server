@@ -44,7 +44,7 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
     /**
      * 通过扫描获取所有rpc代理类
      */
-    public void autoWiredRpcProxy() {
+    public void startClientSever() {
         //初始连接池
         RpcServerPool rpcServerPool = RpcServerPool.getInstance();
         //循环注入代理对象到spring 并将调用服务写到列表
@@ -64,6 +64,6 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
      */
     @Override
     public void onApplicationEvent(ApplicationStartedEvent applicationEvent) {
-        autoWiredRpcProxy();
+        startClientSever();
     }
 }

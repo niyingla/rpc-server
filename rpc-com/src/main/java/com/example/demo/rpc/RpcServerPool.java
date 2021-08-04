@@ -52,10 +52,19 @@ public class RpcServerPool {
      * @param port
      */
     public static void registerServer(String serverName, String ip, int port) {
-        Jedis resource = SpringUtil.getBean(JedisPool.class).getResource();
-        String key = serverPre + serverName + ":" + ip + ":" + port;
-        resource.set(key, ip + ":" + port);
-        resource.expire(key, 90);
+        Jedis resource = null;
+        try {
+            resource = SpringUtil.getBean(JedisPool.class).getResource();
+            String key = serverPre + serverName + ":" + ip + ":" + port;
+            //设置注册信息
+            resource.set(key, ip + ":" + port);
+            //90s 过期
+            resource.expire(key, 90);
+        } finally {
+            if (resource != null) {
+                resource.close();
+            }
+        }
     }
 
 
@@ -87,7 +96,7 @@ public class RpcServerPool {
         for (RpcServerDto.Example example : rpcServerDto.getExamples()) {
             //循环创建连接
             log.info("创建连接 服务: {}：ip: {} ,port: {}", serverName, example.getIp(), example.getPort());
-            NettyClient nettyClient = new NettyClient();
+            NettyClient nettyClient = NettyClient.getNewInstance();
             nettyClient.initClient().createConnect(3, example.getIp(), example.getPort());
             List<ImmutablePair<String, NettyClient>> nettyClients = channelMap.get(serverName);
             if (nettyClients == null) {

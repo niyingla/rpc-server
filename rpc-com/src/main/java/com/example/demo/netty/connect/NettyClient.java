@@ -22,12 +22,16 @@ import java.util.List;
  * @author pikaqiu
  */
 public class NettyClient {
-    static Logger log = LoggerFactory.getLogger(NettyClient.class.getName());
 
+    static Logger log = LoggerFactory.getLogger(NettyClient.class.getName());
     private Bootstrap b = new Bootstrap();
     private EventLoopGroup group = new NioEventLoopGroup();
     private List<ChannelFuture> channelFutures = new ArrayList<>();
 
+
+    public static NettyClient getNewInstance(){
+        return new NettyClient();
+    }
 
     /**
      * 初始化客户端
@@ -92,14 +96,6 @@ public class NettyClient {
      */
     public void close() {
         group.shutdownGracefully();
-    }
-
-    /**
-     * 开始连接
-     */
-    public static void start(){
-        log.info("开始客户端。。。。");
-        new NettyClient().initClient();
     }
 
 }
