@@ -26,6 +26,7 @@ public class TestController {
 
     @GetMapping("testQrCode")
     public void testQrCode(HttpServletRequest request, HttpServletResponse response)throws Exception{
+        System.out.println("进来了。。。。。");
         String path = "https://work.weixin.qq.com/ct/wcdec65609a06992de8b61daebe071262d8e";
         response.sendRedirect(path);
     }
