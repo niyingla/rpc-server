@@ -2,6 +2,7 @@ package com.example.demo.netty.connect;
 
 import com.example.demo.netty.code.MarshallingCodeCFactory;
 import com.example.demo.netty.handler.ResultHandler;
+import com.google.common.collect.ArrayListMultimap;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
@@ -14,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,18 +26,29 @@ public class NettyClient {
     static Logger log = LoggerFactory.getLogger(NettyClient.class.getName());
     private Bootstrap b = new Bootstrap();
     private EventLoopGroup group = new NioEventLoopGroup();
-    private List<ChannelFuture> channelFutures = new ArrayList<>();
+    private boolean hasInit = false;
 
+    private static volatile NettyClient instance;
 
-    public static NettyClient getNewInstance(){
-        return new NettyClient();
+    public static NettyClient geInstance() {
+        if (instance == null) {
+            synchronized (NettyClient.class) {
+                if (instance == null) {
+                    instance = new NettyClient();
+                }
+            }
+        }
+        return instance;
     }
 
     /**
      * 初始化客户端
      * @return
      */
-    public NettyClient initClient() {
+    public synchronized NettyClient initClient() {
+        if(hasInit){
+            return this;
+        }
         //2 辅助类(注意Client 和 Server 不一样)
         b.group(group)
         .channel(NioSocketChannel.class)
@@ -54,6 +65,7 @@ public class NettyClient {
                 sc.pipeline().addLast(new ResultHandler());
             }
         });
+        hasInit = true;
         log.info("初始化客户端完成。。。");
         return this;
     }
@@ -67,30 +79,32 @@ public class NettyClient {
      * @param port
      * @return
      */
-    public NettyClient createConnect(int count, String ip, int port, List<ChannelFuture> channelFutures) {
+    public NettyClient createConnect(int count, String ip, int port, ArrayListMultimap<String, ChannelFuture> channelFuturesMultimap) {
+        //获取当前server地址连接列表
+        List<ChannelFuture> channelFutures = channelFuturesMultimap.get(ip + ":" + port);
+        //已经存在就不连接了
+        if (!CollectionUtils.isEmpty(channelFutures)) {
+            return this;
+        }
+        log.info("创建连接 ip: {} ,port: {}", ip, port);
+        //循环创建连接
         for (int i = 0; i < count; i++) {
             Runnable runnable = () -> {
                 try {
                     ChannelFuture cf = b.connect(ip, port).sync();
-                    channelFutures.add(cf);
+                    synchronized (NettyClient.class) {
+                        channelFuturesMultimap.put(ip + ":" + port, cf);
+                    }
                     cf.channel().closeFuture().sync();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.error("链接错误、、、", e);
                 }
             };
             new Thread(runnable).start();
         }
         return this;
-
     }
 
-    /**
-     * 随机获取一个连接
-     * @return
-     */
-    public ChannelFuture getChannelFuture() {
-        return CollectionUtils.isEmpty(channelFutures) ? null : channelFutures.get((int) (Math.random() * (channelFutures.size())));
-    }
 
     /**
      * 关闭连接
