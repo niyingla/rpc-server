@@ -106,7 +106,7 @@ public class RpcServerPool {
             //获取服务channel列表
             ArrayListMultimap<String, ChannelFuture> futureList = channelMap.getOrDefault(serverName, ArrayListMultimap.create());
             //初始化链接
-            nettyClient.initClient().createConnect(3, example.getIp(), example.getPort(), futureList);
+            nettyClient.initClient().createConnect(1, example.getIp(), example.getPort(), futureList);
             if (!channelMap.containsKey(serverName)) {
                 channelMap.put(serverName, futureList);
             }

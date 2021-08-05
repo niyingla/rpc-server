@@ -45,7 +45,7 @@ public class NettyClient {
      * 初始化客户端
      * @return
      */
-    public NettyClient initClient() {
+    public synchronized NettyClient initClient() {
         if(hasInit){
             return this;
         }
@@ -97,7 +97,7 @@ public class NettyClient {
                     }
                     cf.channel().closeFuture().sync();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.error("链接错误、、、", e);
                 }
             };
             new Thread(runnable).start();
