@@ -71,4 +71,8 @@ public class RpcServerDto {
         Example example = new Example(ip, port);
         examples.add(example);
     }
+
+    public void clearExamples(){
+        examples = new ArrayList<>();
+    }
 }

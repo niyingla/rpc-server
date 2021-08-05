@@ -4,6 +4,7 @@ import com.example.demo.dto.RpcServerDto;
 import com.example.demo.netty.connect.NettyClient;
 import com.example.demo.rpc.util.RpcClient;
 import com.example.demo.rpc.util.SpringUtil;
+import com.google.common.collect.ArrayListMultimap;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,8 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author pikaqiu
@@ -20,11 +23,15 @@ public class RpcServerPool {
 
     static Logger log = LoggerFactory.getLogger(RpcClient.class.getName());
 
-    //key 服务名 value 初始化链接参数
+    /**
+     * key 服务名 value 初始化链接参数
+     */
     private final Map<String, RpcServerDto> serverDtoMap = new HashMap<>();
 
-    //key 服务名 value 链接信息
-    private static Map<String, List<ChannelFuture>> channelMap = new HashMap<>();
+    /**
+     * key 服务名 value 链接信息
+     */
+    private static Map<String, ArrayListMultimap<String,ChannelFuture>> channelMap = new HashMap<>();
 
     private static String serverPre = "server:pre:";
 
@@ -81,8 +88,8 @@ public class RpcServerPool {
             createConnect(serverName, rpcServerDto);
         }
         log.info("连接服务完成...");
-        //清空初始服务缓存
-        serverDtoMap.clear();
+        //定时检查链接
+        checkTask();
         return this;
     }
 
@@ -94,10 +101,11 @@ public class RpcServerPool {
      */
     private void createConnect(String serverName, RpcServerDto rpcServerDto) {
         for (RpcServerDto.Example example : rpcServerDto.getExamples()) {
-            //循环创建连接
-            log.info("创建连接 服务: {}：ip: {} ,port: {}", serverName, example.getIp(), example.getPort());
-            NettyClient nettyClient = NettyClient.getNewInstance();
-            List<ChannelFuture> futureList = channelMap.getOrDefault(serverName, new ArrayList<>());
+            //获取客户端链接实例
+            NettyClient nettyClient = NettyClient.geInstance();
+            //获取服务channel列表
+            ArrayListMultimap<String, ChannelFuture> futureList = channelMap.getOrDefault(serverName, ArrayListMultimap.create());
+            //初始化链接
             nettyClient.initClient().createConnect(3, example.getIp(), example.getPort(), futureList);
             if (!channelMap.containsKey(serverName)) {
                 channelMap.put(serverName, futureList);
@@ -125,24 +133,25 @@ public class RpcServerPool {
      */
     public ChannelFuture getChannelByServerName(String serverName) {
         //获取服务连接池
-        List<ChannelFuture> channelFutures = channelMap.get(serverName);
+        ArrayListMultimap<String, ChannelFuture> listMultimap = channelMap.get(serverName);
         ChannelFuture channelFuture = null;
         //不存在重新链接
-        if (CollectionUtils.isEmpty(channelFutures)) {
+        if (listMultimap == null || listMultimap.size() == 0) {
             //todo 可以间隔一定时间才进行下一次链接
             reConnect(serverName);
         }
-        for (; channelFutures.size() > 0; ) {
+        for (; listMultimap.size() > 0; ) {
             //随件获取一个链接
+            Collection<ChannelFuture> channelFutures = listMultimap.values();
             int index = (int) (Math.random() * (channelFutures.size()));
-            channelFuture = channelFutures.get(index);
+            channelFuture = channelFutures.toArray(new ChannelFuture[0])[index];
             //链接存活 直接return
             if (channelFuture != null && channelFuture.channel().isActive()) {
                 break;
             } else {
                 synchronized (RpcServerPool.class) {
                     //清空无效链接
-                    channelFutures.remove(index);
+                    channelFutures.remove(channelFuture);
                     if (CollectionUtils.isEmpty(channelFutures)) {
                         channelMap.remove(serverName);
                     }
@@ -154,6 +163,38 @@ public class RpcServerPool {
         return channelFuture;
     }
 
+    /**
+     * 检查服务链接
+     */
+    public void checkConnect() {
+        for (String serverName : serverDtoMap.keySet()) {
+            RpcServerDto rpcServerDto = serverDtoMap.get(serverName);
+            rpcServerDto.clearExamples();
+            //加载当前服务链接
+            addAllServer(serverName);
+            //创建连接
+            createConnect(serverName, rpcServerDto);
+        }
+    }
+
+
+    public void checkTask(){
+        //持续注册 每60s注册一次
+        Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread thread = new Thread(r, "schedule-register");
+            thread.setDaemon(true);
+            return thread;
+        }).scheduleWithFixedDelay(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    checkConnect();
+                } catch (Exception e) {
+                    log.error("注册到服务列表失败", e);
+                }
+            }
+        }, 90L, 60L, TimeUnit.SECONDS);
+    }
 
     /**
      * 添加服务名和参数
