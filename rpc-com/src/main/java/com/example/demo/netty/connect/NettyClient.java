@@ -97,7 +97,7 @@ public class NettyClient {
                     }
                     cf.channel().closeFuture().sync();
                 } catch (Exception e) {
-                    log.error("链接错误、、、", e);
+                    log.error("链接错误...", e);
                 }
             };
             new Thread(runnable).start();
