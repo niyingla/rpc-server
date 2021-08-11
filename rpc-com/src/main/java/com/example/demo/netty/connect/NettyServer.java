@@ -80,7 +80,7 @@ public class NettyServer {
     /**
      * 开始连接
      */
-    public static void start() {
+    public static synchronized void start() {
         try {
             log.info("开始服务端。。。");
             new NettyServer().init();

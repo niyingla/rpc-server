@@ -39,20 +39,19 @@ public class RpcServerPool {
 
     private static volatile RpcServerPool instance;
 
-    private RpcServerPool() {
+    private RpcContext rpcContext;
+
+    private RpcServerPool(RpcContext rpcContext) {
+        this.rpcContext = rpcContext;
     }
 
     public static RpcServerPool getInstance() {
-        if (instance == null) {
-            synchronized (RpcServerPool.class) {
-                if (instance == null) {
-                    instance = new RpcServerPool();
-                }
-            }
-        }
         return instance;
     }
 
+    public static RpcServerPool getNewInstance(RpcContext rpcContext) {
+        return new RpcServerPool(rpcContext);
+    }
     /**
      * 注册服务
      * @param serverName
@@ -87,7 +86,7 @@ public class RpcServerPool {
         for (String serverName : serverDtoMap.keySet()) {
             RpcServerDto rpcServerDto = serverDtoMap.get(serverName);
             //创建链接
-            createConnect(serverName, rpcServerDto, rpcContext);
+            createConnect(serverName, rpcServerDto);
         }
         log.info("连接服务完成...");
         //定时检查链接
@@ -101,7 +100,7 @@ public class RpcServerPool {
      * @param serverName
      * @param rpcServerDto
      */
-    private void createConnect(String serverName, RpcServerDto rpcServerDto, RpcContext rpcContext) {
+    private void createConnect(String serverName, RpcServerDto rpcServerDto) {
         //获取配置
         RpcSource rpcSource = rpcContext.getRpcSource();
         for (RpcServerDto.Example example : rpcServerDto.getExamples()) {
@@ -127,7 +126,7 @@ public class RpcServerPool {
         //获取注册列表
         addAllServer(serverName);
         //创建连接
-        createConnect(serverName, serverDtoMap.get(serverName), StartFactory.getRpcContext());
+        createConnect(serverName, serverDtoMap.get(serverName));
     }
 
     /**
@@ -177,7 +176,7 @@ public class RpcServerPool {
             //加载当前服务链接
             addAllServer(serverName);
             //创建连接
-            createConnect(serverName, rpcServerDto, StartFactory.getRpcContext());
+            createConnect(serverName, rpcServerDto);
         }
     }
 

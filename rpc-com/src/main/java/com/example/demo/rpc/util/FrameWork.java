@@ -16,8 +16,7 @@ import java.lang.reflect.Method;
 /**
  * @author pikaqiu
  */
-@Component
-public class FrameWork implements ApplicationContextAware {
+public class FrameWork {
 
     private static ApplicationContext applicationContext;
 
@@ -49,7 +48,6 @@ public class FrameWork implements ApplicationContextAware {
         return result;
     }
 
-    @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         FrameWork.applicationContext = applicationContext;
     }

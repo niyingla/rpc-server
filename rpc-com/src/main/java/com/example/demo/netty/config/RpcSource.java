@@ -5,8 +5,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "rpc")
 public class RpcSource {
 
+    /**
+     * 默认扫描路径
+     */
     private String classPtah = "com.example.demo";
 
+    /**
+     * 默认连接数
+     */
     private Integer connectCount = 3;
 
     public String getClassPtah() {

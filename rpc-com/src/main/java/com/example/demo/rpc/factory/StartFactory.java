@@ -25,31 +25,27 @@ import java.util.Map;
 public class StartFactory implements ApplicationListener<ApplicationStartedEvent> {
 
     /**
-     * bean工厂上下文
-     */
-    private ConfigurableListableBeanFactory defaultListableBeanFactory;
-
-    /**
      * 当前上下文
      */
     private final static RpcContext rpcContext = new RpcContext();
 
     /**
      * 根据接口生成代理对象
+     *
      * @param interfaceServer
      */
-    public <T> void setBean(Class<T> interfaceServer) {
+    public <T> void setBean(RpcContext rpcContext, Class<T> interfaceServer) {
         //生成代理对象
         T proxyObject = ProxyFactory.getInterfaceInfo(interfaceServer);
         //注册对象到spring
-        defaultListableBeanFactory.registerSingleton(StringUtils.lowerFirst(interfaceServer.getSimpleName()), proxyObject);
+        rpcContext.getBeanFactory().registerSingleton(StringUtils.lowerFirst(interfaceServer.getSimpleName()), proxyObject);
     }
 
 
     /**
      * 通过扫描获取所有rpc代理类
      */
-    public void startClientSever(RpcContext rpcContext) {
+    public synchronized void startClientSever(RpcContext rpcContext) {
         RpcSource rpcSource = rpcContext.getRpcSource();
         RpcServerPool rpcServerPool = rpcContext.getRpcServerPool();
         // 需要加載实例列表和服务列表
@@ -57,7 +53,7 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
         //循环注入代理对象到spring 并将调用服务写到列表
         for (Map.Entry<Class, RpcServerCase> entry : rpcInterFace.entrySet()) {
             //设置代理对象
-            setBean(entry.getKey());
+            setBean(rpcContext, entry.getKey());
             //写入连接服务列表
             rpcServerPool.addServerName(entry.getValue().serverName());
         }
@@ -67,6 +63,7 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
 
     /**
      * 启动客户端服务
+     *
      * @param applicationEvent
      */
     @Override
@@ -83,26 +80,19 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
 
     /**
      * 设置对象到上下文
+     *
      * @param applicationContext
      */
     private RpcContext setContextBean(ConfigurableApplicationContext applicationContext) {
         //1 设置bean工厂上下文
-        defaultListableBeanFactory = applicationContext.getBeanFactory();
+        rpcContext.setDefaultListableBeanFactory(applicationContext.getBeanFactory());
         //2 注入配置
         rpcContext.setRpcSource(applicationContext.getBean(RpcSource.class));
         //初始连接池
-        rpcContext.setRpcServerPool(RpcServerPool.getInstance());
+        rpcContext.setRpcServerPool(RpcServerPool.getNewInstance(rpcContext));
+        //设置spring上下文
+        rpcContext.setApplicationContext(applicationContext);
         return rpcContext;
     }
 
-
-    /**
-     * 获取上下文
-     * @return
-     */
-    public static RpcContext getRpcContext() {
-        if (rpcContext == null)
-            throw new RuntimeException("上下文不存在");
-        return rpcContext;
-    }
 }
