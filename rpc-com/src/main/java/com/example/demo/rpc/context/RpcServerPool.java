@@ -10,6 +10,7 @@ import com.google.common.collect.ArrayListMultimap;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 import org.springframework.util.CollectionUtils;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -45,12 +46,22 @@ public class RpcServerPool {
         this.rpcContext = rpcContext;
     }
 
+    /**
+     * 获取当前实例
+     * @return
+     */
     public static RpcServerPool getInstance() {
         return instance;
     }
 
-    public static RpcServerPool getNewInstance(RpcContext rpcContext) {
-        return new RpcServerPool(rpcContext);
+    /**
+     * 获取一个新rpc客户端连接池实例
+     * @param rpcContext
+     * @return
+     */
+    public static RpcServerPool getNewInstance(@NonNull RpcContext rpcContext) {
+        instance = new RpcServerPool(rpcContext);
+        return instance;
     }
     /**
      * 注册服务
@@ -78,7 +89,7 @@ public class RpcServerPool {
     /**
      * 初始化所有连接
      */
-    public RpcServerPool initAllConnect(RpcContext rpcContext) {
+    public RpcServerPool initAllConnect() {
         //根据注册列表 获取redis中存的 ip和端口
         log.info("开始获取服务列表...");
         loadServer();

@@ -58,7 +58,7 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
             rpcServerPool.addServerName(entry.getValue().serverName());
         }
         //开始链接
-        rpcServerPool.initAllConnect(rpcContext);
+        rpcServerPool.initAllConnect();
     }
 
     /**
@@ -95,4 +95,7 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
         return rpcContext;
     }
 
+    public static RpcContext getRpcContext() {
+        return rpcContext;
+    }
 }
