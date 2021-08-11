@@ -8,7 +8,7 @@ import java.lang.reflect.Proxy;
 /**
  * @author pikaqiu
  */
-@Slf4j
+
 public class ProxyFactory {
     /**
      * 获取接口代理

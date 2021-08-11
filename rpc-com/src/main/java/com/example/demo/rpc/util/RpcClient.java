@@ -3,7 +3,7 @@ package com.example.demo.rpc.util;
 import com.alibaba.fastjson.JSON;
 import com.example.demo.annotation.RpcServerCase;
 import com.example.demo.dto.RpcRequestDto;
-import com.example.demo.rpc.RpcServerPool;
+import com.example.demo.rpc.context.RpcServerPool;
 import com.example.demo.util.ChannelUtils;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
@@ -36,7 +36,7 @@ public class RpcClient {
         RpcServerCase rpcServerCase = (RpcServerCase) interfaceClass.getAnnotation(RpcServerCase.class);
         //省钱请求信息
         RpcRequestDto rpcRequestDto = new RpcRequestDto(UUID.randomUUID().toString(), interfaceClass.getName(), method, args);
-        //获取请求chanenl
+        //获取请求channel
         ChannelFuture channel = RpcServerPool.getInstance().getChannelByServerName(rpcServerCase.serverName());
         if (channel == null) {
             throw new RuntimeException("服务不存在");

@@ -1,6 +1,6 @@
 package com.example.demo.rpc.util;
 
-import com.example.demo.netty.config.RegisterServerListener;
+import com.alibaba.fastjson.JSON;
 import com.example.demo.util.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +22,7 @@ public class FrameWork implements ApplicationContextAware {
     private static ApplicationContext applicationContext;
 
 
-    static Logger log = LoggerFactory.getLogger(RegisterServerListener.class.getName());
+    static Logger log = LoggerFactory.getLogger(FrameWork.class.getName());
 
     /**
      *  通过反射调用目标方法
@@ -44,8 +44,9 @@ public class FrameWork implements ApplicationContextAware {
         Class[] classType = ClassUtils.getClassType(param);
         Method method = clazz.getMethod(methodStr, classType);
         //反射执行方法
-        return method.invoke(contextBean, param);
-
+        log.info("执行 {}.{}方法 参数是 {}",classPathStr,methodStr, JSON.toJSONString(param));
+        Object result = method.invoke(contextBean, param);
+        return result;
     }
 
     @Override

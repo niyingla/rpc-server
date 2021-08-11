@@ -1,7 +1,9 @@
-package com.example.demo.rpc;
+package com.example.demo.rpc.context;
 
 import com.example.demo.dto.RpcServerDto;
+import com.example.demo.netty.config.RpcSource;
 import com.example.demo.netty.connect.NettyClient;
+import com.example.demo.rpc.factory.StartFactory;
 import com.example.demo.rpc.util.RpcClient;
 import com.example.demo.rpc.util.SpringUtil;
 import com.google.common.collect.ArrayListMultimap;
@@ -77,7 +79,7 @@ public class RpcServerPool {
     /**
      * 初始化所有连接
      */
-    public RpcServerPool initAllConnect() {
+    public RpcServerPool initAllConnect(RpcContext rpcContext) {
         //根据注册列表 获取redis中存的 ip和端口
         log.info("开始获取服务列表...");
         loadServer();
@@ -85,7 +87,7 @@ public class RpcServerPool {
         for (String serverName : serverDtoMap.keySet()) {
             RpcServerDto rpcServerDto = serverDtoMap.get(serverName);
             //创建链接
-            createConnect(serverName, rpcServerDto);
+            createConnect(serverName, rpcServerDto, rpcContext);
         }
         log.info("连接服务完成...");
         //定时检查链接
@@ -99,14 +101,16 @@ public class RpcServerPool {
      * @param serverName
      * @param rpcServerDto
      */
-    private void createConnect(String serverName, RpcServerDto rpcServerDto) {
+    private void createConnect(String serverName, RpcServerDto rpcServerDto, RpcContext rpcContext) {
+        //获取配置
+        RpcSource rpcSource = rpcContext.getRpcSource();
         for (RpcServerDto.Example example : rpcServerDto.getExamples()) {
             //获取客户端链接实例
             NettyClient nettyClient = NettyClient.geInstance();
             //获取服务channel列表
             ArrayListMultimap<String, ChannelFuture> futureList = channelMap.getOrDefault(serverName, ArrayListMultimap.create());
             //初始化链接
-            nettyClient.initClient().createConnect(1, example.getIp(), example.getPort(), futureList);
+            nettyClient.initClient().createConnect(rpcSource.getConnectCount(), example.getIp(), example.getPort(), futureList);
             if (!channelMap.containsKey(serverName)) {
                 channelMap.put(serverName, futureList);
             }
@@ -123,7 +127,7 @@ public class RpcServerPool {
         //获取注册列表
         addAllServer(serverName);
         //创建连接
-        createConnect(serverName, serverDtoMap.get(serverName));
+        createConnect(serverName, serverDtoMap.get(serverName), StartFactory.getRpcContext());
     }
 
     /**
@@ -173,7 +177,7 @@ public class RpcServerPool {
             //加载当前服务链接
             addAllServer(serverName);
             //创建连接
-            createConnect(serverName, rpcServerDto);
+            createConnect(serverName, rpcServerDto, StartFactory.getRpcContext());
         }
     }
 
