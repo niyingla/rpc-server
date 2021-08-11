@@ -2,6 +2,7 @@ package com.example.demo.rpc.factory;
 
 import com.example.demo.annotation.RpcServerCase;
 import com.example.demo.factory.ProxyFactory;
+import com.example.demo.netty.connect.NettyServer;
 import com.example.demo.rpc.RpcServerPool;
 import com.example.demo.util.ScannerUtils;
 import com.example.demo.util.StringUtils;
@@ -64,6 +65,9 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
      */
     @Override
     public void onApplicationEvent(ApplicationStartedEvent applicationEvent) {
+        //启动服务端
         startClientSever();
+        //启动客户端
+        new Thread(() -> NettyServer.start()).start();
     }
 }

@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class RegisterServerListener implements ApplicationListener<ApplicationStartedEvent> {
 
-  static Logger log = LoggerFactory.getLogger(RegisterServerListener.class.getName());
+  private static Logger log = LoggerFactory.getLogger(RegisterServerListener.class.getName());
 
   @Override
   public void onApplicationEvent(ApplicationStartedEvent applicationStartedEvent) {
