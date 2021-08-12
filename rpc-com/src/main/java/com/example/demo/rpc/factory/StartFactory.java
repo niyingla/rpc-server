@@ -73,9 +73,9 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
         //2 启动服务端
         startClientSever(rpcContext);
         //3 启动客户端
-        new Thread(() -> NettyServer.start()).start();
+        new Thread(() -> NettyServer.start(rpcContext.getRpcSource().getPort())).start();
         //4 发起服务注册
-        RegisterServer.register(applicationEvent);
+        RegisterServer.register();
     }
 
     /**
@@ -86,12 +86,18 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
     private RpcContext setContextBean(ConfigurableApplicationContext applicationContext) {
         //1 设置bean工厂上下文
         rpcContext.setDefaultListableBeanFactory(applicationContext.getBeanFactory());
+        RpcSource rpcSource = applicationContext.getBean(RpcSource.class);
+        //1.1 设置服务名
+        rpcSource.setServerName(org.apache.commons.lang3.StringUtils.isBlank(rpcSource.getServerName()) ?
+                applicationContext.getEnvironment().getProperty("spring.application.name") : rpcSource.getServerName());
         //2 注入配置
-        rpcContext.setRpcSource(applicationContext.getBean(RpcSource.class));
+        rpcContext.setRpcSource(rpcSource);
         //初始连接池
         rpcContext.setRpcServerPool(RpcServerPool.getNewInstance(rpcContext));
         //设置spring上下文
         rpcContext.setApplicationContext(applicationContext);
+        // 注册到服务列表
+
         return rpcContext;
     }
 

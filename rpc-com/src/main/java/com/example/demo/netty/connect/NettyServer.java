@@ -24,7 +24,6 @@ import java.util.Random;
 public class NettyServer {
     static Logger log = LoggerFactory.getLogger(NettyClient.class.getName());
 
-    private static int port;
 
     EventLoopGroup pGroup = new NioEventLoopGroup();
     EventLoopGroup cGroup = new NioEventLoopGroup();
@@ -35,7 +34,7 @@ public class NettyServer {
      *
      * @throws Exception
      */
-    public void init() throws Exception {
+    public void init(int port) throws Exception {
         ServerBootstrap b = new ServerBootstrap();
         b.group(pGroup, cGroup)
                 .channel(NioServerSocketChannel.class)
@@ -58,7 +57,6 @@ public class NettyServer {
                         sc.pipeline().addLast(new ServerHeartBeatHandler());
                     }
                 });
-        port = new Random().nextInt(20000) + 8000;
         ChannelFuture cf = b.bind(port).sync();
         log.info("初始化服务端完成。。。");
         cf.channel().closeFuture().sync();
@@ -73,17 +71,14 @@ public class NettyServer {
         cGroup.shutdownGracefully();
     }
 
-    public static int getPort() {
-        return port;
-    }
 
     /**
      * 开始连接
      */
-    public static synchronized void start() {
+    public static synchronized void start(int port) {
         try {
             log.info("开始服务端。。。");
-            new NettyServer().init();
+            new NettyServer().init(port);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("启动客户端失败");

@@ -17,7 +17,7 @@ public class RpcContext {
     private RpcSource rpcSource;
 
     /**
-     *
+     * 上下文
      */
     private ConfigurableApplicationContext applicationContext;
 

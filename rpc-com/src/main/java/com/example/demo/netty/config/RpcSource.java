@@ -15,6 +15,13 @@ public class RpcSource {
      */
     private Integer connectCount = 3;
 
+    /**
+     * 默认端口
+     */
+    private int port = 33333;
+
+    private String serverName;
+
     public String getClassPtah() {
         return classPtah;
     }
@@ -29,5 +36,21 @@ public class RpcSource {
 
     public void setConnectCount(Integer connectCount) {
         this.connectCount = connectCount;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public String getServerName() {
+        return serverName;
+    }
+
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
     }
 }
