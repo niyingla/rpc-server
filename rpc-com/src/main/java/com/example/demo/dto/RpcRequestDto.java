@@ -26,6 +26,8 @@ public class RpcRequestDto implements Serializable {
 
     private Object result;
 
+    private Object other;
+
     public String getRequestId() {
         return requestId;
     }
@@ -64,5 +66,13 @@ public class RpcRequestDto implements Serializable {
 
     public void setResult(Object result) {
         this.result = result;
+    }
+
+    public Object getOther() {
+        return other;
+    }
+
+    public void setOther(Object other) {
+        this.other = other;
     }
 }

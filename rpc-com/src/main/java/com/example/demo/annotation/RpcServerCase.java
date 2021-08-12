@@ -1,5 +1,7 @@
 package com.example.demo.annotation;
 
+import com.example.demo.inteface.Aspect;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -12,5 +14,17 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Target(TYPE)
 public @interface RpcServerCase {
+    /**
+     * 引入服务
+     * @return
+     */
     String serverName();
+
+    /**
+     * 代理类
+     * @return
+     */
+    Class<? extends Aspect>[] proxyClass() default {};
+
+
 }

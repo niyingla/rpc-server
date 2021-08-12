@@ -1,6 +1,9 @@
 
 package com.example.demo.rpc.util;
 
+import com.example.demo.inteface.Aspect;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.ResolvableType;
@@ -53,6 +56,25 @@ public class SpringUtil implements ApplicationContextAware {
         return (T) applicationContext.getBean(name);
     }
 
+    /**
+     * 通过name获取 Bean
+     *
+     * @param <T>  Bean类型
+     * @param name Bean名称
+     * @param clazz
+     * @return Bean
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T getBeanOrNull(Class<T> clazz) {
+        T bean = null;
+        try {
+            bean = (T) applicationContext.getBean(clazz);
+        } catch (NoSuchBeanDefinitionException e) {
+            return null;
+        }
+
+        return bean;
+    }
     /**
      * 通过class获取Bean
      *
