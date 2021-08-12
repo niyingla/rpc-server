@@ -17,6 +17,6 @@ public class ReqAspect implements Aspect {
     @Override
     public void after(RpcRequestDto requestDto) {
         long time = (long) requestDto.getOther();
-        log.info("本次请求花费：{}ms", System.currentTimeMillis() - time);
+        log.info("请求id：{}, 本次请求花费：{}ms", requestDto.getRequestId(), System.currentTimeMillis() - time);
     }
 }

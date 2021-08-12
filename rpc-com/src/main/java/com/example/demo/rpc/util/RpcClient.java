@@ -46,7 +46,7 @@ public class RpcClient {
         if (channel == null) {
             throw new RuntimeException("服务不存在");
         }
-        log.info("发起远程请求 请求目标服务：{} 目标方法：{}.{} 参数:{}", rpcServerCase.serverName(),
+        log.info("发起远程请求 请求id：{} 请求目标服务：{} 目标方法：{}.{} 参数:{}", rpcRequestDto.getRequestId(), rpcServerCase.serverName(),
                 interfaceClass.getName(), rpcRequestDto.getMethodName(), JSON.toJSONString(rpcRequestDto.getArgs()));
         //发送请求
         return ChannelUtils.sendChannelRpcRequest(channel, rpcRequestDto);
