@@ -3,8 +3,10 @@ package com.example.demo.proxy;
 import com.example.demo.dto.RpcRequestDto;
 import com.example.demo.inteface.Aspect;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+@Order(1)
 @Slf4j
 @Component
 public class ReqAspect implements Aspect {

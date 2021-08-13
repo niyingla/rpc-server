@@ -22,6 +22,26 @@ public class RpcSource {
 
     private String serverName;
 
+    private String[] commonReqAspect = new String[]{};;
+
+    private String[] commonRecAspect = new String[]{};
+
+    public String[] getCommonReqAspect() {
+        return commonReqAspect;
+    }
+
+    public void setCommonReqAspect(String[] commonReqAspect) {
+        this.commonReqAspect = commonReqAspect;
+    }
+
+    public String[] getCommonRecAspect() {
+        return commonRecAspect;
+    }
+
+    public void setCommonRecAspect(String[] commonRecAspect) {
+        this.commonRecAspect = commonRecAspect;
+    }
+
     public String getClassPtah() {
         return classPtah;
     }

@@ -1,6 +1,7 @@
 package com.example.demo.inteface;
 
 import com.example.demo.dto.RpcRequestDto;
+import org.springframework.core.annotation.Order;
 
 public interface Aspect {
     /**

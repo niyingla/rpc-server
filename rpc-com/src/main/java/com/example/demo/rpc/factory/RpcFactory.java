@@ -3,15 +3,15 @@ package com.example.demo.rpc.factory;
 import com.example.demo.annotation.RpcServerCase;
 import com.example.demo.dto.RpcRequestDto;
 import com.example.demo.inteface.Aspect;
+import com.example.demo.monad.Try;
+import com.example.demo.netty.config.RpcSource;
 import com.example.demo.rpc.util.RpcClient;
 import com.example.demo.rpc.util.SpringUtil;
+import org.springframework.core.annotation.Order;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -30,7 +30,6 @@ public class RpcFactory<T> implements InvocationHandler {
 
     public RpcFactory(Class<T>  rpcInterface) {
         this.rpcInterface = rpcInterface;
-
         //参数对象转换成能字节  远程调用
         RpcServerCase rpcServerCase = rpcInterface.getAnnotation(RpcServerCase.class);
         Class[] proxyClasss = rpcServerCase.proxyClass();
@@ -73,7 +72,7 @@ public class RpcFactory<T> implements InvocationHandler {
      */
     private static List<Aspect> getAspects(Class[] proxyClasss) {
         List<Aspect> aspectInsts = Arrays.stream(proxyClasss)
-                //循环切面类对象
+                //循环获取切面类对象
                 .map(proxyClass -> {
                     Aspect aspect = (Aspect) SpringUtil.getBeanOrNull(proxyClass);
                     if (aspect == null) {
@@ -86,7 +85,12 @@ public class RpcFactory<T> implements InvocationHandler {
                         }
                     }
                     return aspect;
-                }).filter(Objects::nonNull).collect(Collectors.toList());
+                }).filter(Objects::nonNull)
+                //注解排序
+                .sorted(Comparator.comparing(item -> {
+                    Order annotation = item.getClass().getAnnotation(Order.class);
+                    return annotation != null ? annotation.value() : Integer.MAX_VALUE;
+                })).collect(Collectors.toList());
         return aspectInsts;
     }
 
