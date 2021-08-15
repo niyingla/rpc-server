@@ -16,9 +16,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
- *
  * @author pikaqiu
  */
 public class NettyClient {
@@ -43,28 +43,29 @@ public class NettyClient {
 
     /**
      * 初始化客户端
+     *
      * @return
      */
     public synchronized NettyClient initClient() {
-        if(hasInit){
+        if (hasInit) {
             return this;
         }
         //2 辅助类(注意Client 和 Server 不一样)
         b.group(group)
-        .channel(NioSocketChannel.class)
-        //表示缓存区动态调配（自适应）
-        .option(ChannelOption.RCVBUF_ALLOCATOR, AdaptiveRecvByteBufAllocator.DEFAULT)
-        //缓存区 池化操作
-        .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-        .handler(new LoggingHandler(LogLevel.INFO))
-        .handler(new ChannelInitializer<SocketChannel>() {
-            @Override
-            protected void initChannel(SocketChannel sc) throws Exception {
-                sc.pipeline().addLast(MarshallingCodeCFactory.buildMarshallingDecoder());
-                sc.pipeline().addLast(MarshallingCodeCFactory.buildMarshallingEncoder());
-                sc.pipeline().addLast(new ResultHandler());
-            }
-        });
+                .channel(NioSocketChannel.class)
+                //表示缓存区动态调配（自适应）
+                .option(ChannelOption.RCVBUF_ALLOCATOR, AdaptiveRecvByteBufAllocator.DEFAULT)
+                //缓存区 池化操作
+                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .handler(new LoggingHandler(LogLevel.INFO))
+                .handler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel sc) throws Exception {
+                        sc.pipeline().addLast(MarshallingCodeCFactory.buildMarshallingDecoder());
+                        sc.pipeline().addLast(MarshallingCodeCFactory.buildMarshallingEncoder());
+                        sc.pipeline().addLast(new ResultHandler());
+                    }
+                });
         hasInit = true;
         log.info("初始化客户端完成。。。");
         return this;
@@ -89,18 +90,15 @@ public class NettyClient {
         log.info("创建连接 ip: {} ,port: {}", ip, port);
         //循环创建连接
         for (int i = 0; i < count; i++) {
-            Runnable runnable = () -> {
-                try {
-                    ChannelFuture cf = b.connect(ip, port).sync();
-                    synchronized (NettyClient.class) {
-                        channelFuturesMultimap.put(ip + ":" + port, cf);
-                    }
-                    cf.channel().closeFuture().sync();
-                } catch (Exception e) {
-                    log.error("链接错误...", e);
+            try {
+                //链接服务端
+                ChannelFuture channelFuture = b.connect(ip, port).sync();
+                synchronized (NettyClient.class) {
+                    channelFuturesMultimap.put(ip + ":" + port, channelFuture);
                 }
-            };
-            new Thread(runnable).start();
+            } catch (Exception e) {
+                log.error("链接错误...", e);
+            }
         }
         return this;
     }

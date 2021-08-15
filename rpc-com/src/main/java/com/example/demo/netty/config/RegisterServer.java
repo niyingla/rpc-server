@@ -27,10 +27,8 @@ public class RegisterServer {
     /**
      * 注册当前服务定时任务
      */
-  public static void register() {
+  public static void register( RpcContext rpcContext ) {
       log.info("开始注册到服务列表");
-      RpcContext rpcContext = StartFactory.getRpcContext();
-
       //持续注册 每60s注册一次
       Executors.newSingleThreadScheduledExecutor(r -> {
           Thread thread = new Thread(r, "schedule-register");

@@ -2,6 +2,7 @@ package com.example.demo.netty.connect;
 
 import com.example.demo.netty.code.MarshallingCodeCFactory;
 import com.example.demo.netty.handler.ServerHeartBeatHandler;
+import com.example.demo.rpc.context.RpcContext;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
@@ -25,8 +26,10 @@ public class NettyServer {
     static Logger log = LoggerFactory.getLogger(NettyClient.class.getName());
 
 
-    EventLoopGroup pGroup = new NioEventLoopGroup();
-    EventLoopGroup cGroup = new NioEventLoopGroup();
+    private EventLoopGroup pGroup = new NioEventLoopGroup();
+    private EventLoopGroup cGroup = new NioEventLoopGroup();
+
+    private ChannelFuture cf;
 
 
     /**
@@ -35,6 +38,7 @@ public class NettyServer {
      * @throws Exception
      */
     public void init(int port) throws Exception {
+        log.info("开始服务端。。。");
         ServerBootstrap b = new ServerBootstrap();
         b.group(pGroup, cGroup)
                 .channel(NioServerSocketChannel.class)
@@ -59,12 +63,14 @@ public class NettyServer {
                 });
         ChannelFuture cf = b.bind(port).sync();
         log.info("初始化服务端完成。。。");
-        cf.channel().closeFuture().sync();
+        //阻塞线程
+//        cf.channel().closeFuture().sync();
     }
 
 
     /**
-     * 关闭连接
+     * 关闭连接 本处不调用
+     * 这是服务基础
      */
     public void shotDown() {
         pGroup.shutdownGracefully();
@@ -73,14 +79,18 @@ public class NettyServer {
 
 
     /**
+     * @param rpcContext 上下文
      * 开始连接
      */
-    public static synchronized void start(int port) {
+    public static void start(RpcContext rpcContext) {
+        NettyServer nettyServer = null;
         try {
-            log.info("开始服务端。。。");
-            new NettyServer().init(port);
+            nettyServer = new NettyServer();
+            nettyServer.init(rpcContext.getRpcSource().getPort());
+            rpcContext.setNettyServer(nettyServer);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("启动客户端失败", e);
+            nettyServer.shotDown();
             throw new RuntimeException("启动客户端失败");
         }
     }

@@ -1,6 +1,7 @@
 package com.example.demo.rpc.context;
 
 import com.example.demo.netty.config.RpcSource;
+import com.example.demo.netty.connect.NettyServer;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -25,6 +26,11 @@ public class RpcContext {
      * bean工厂上下文
      */
     private ConfigurableListableBeanFactory beanFactory;
+
+    /**
+     * 服务端对象
+     */
+    private NettyServer nettyServer;
 
     public RpcServerPool getRpcServerPool() {
         return rpcServerPool;
@@ -56,5 +62,17 @@ public class RpcContext {
 
     public void setDefaultListableBeanFactory(ConfigurableListableBeanFactory defaultListableBeanFactory) {
         this.beanFactory = defaultListableBeanFactory;
+    }
+
+    public void setBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+        this.beanFactory = beanFactory;
+    }
+
+    public NettyServer getNettyServer() {
+        return nettyServer;
+    }
+
+    public void setNettyServer(NettyServer nettyServer) {
+        this.nettyServer = nettyServer;
     }
 }

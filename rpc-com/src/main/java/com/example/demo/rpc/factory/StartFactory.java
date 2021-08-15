@@ -68,14 +68,14 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
      */
     @Override
     public void onApplicationEvent(ApplicationStartedEvent applicationEvent) {
-        //设置上下文
+        //1 设置上下文
         RpcContext rpcContext = setContextBean(applicationEvent.getApplicationContext());
         //2 启动服务端
         startClientSever(rpcContext);
         //3 启动客户端
-        new Thread(() -> NettyServer.start(rpcContext.getRpcSource().getPort())).start();
+        NettyServer.start(rpcContext);
         //4 发起服务注册
-        RegisterServer.register();
+        RegisterServer.register(rpcContext);
     }
 
     /**
