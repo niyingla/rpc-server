@@ -79,7 +79,7 @@ public class NettyClient {
                     }
                 });
         hasInit = true;
-        log.info("初始化客户端完成。。。");
+        log.debug("初始化客户端完成。。。");
         return this;
     }
 
@@ -99,7 +99,7 @@ public class NettyClient {
         if (!CollectionUtils.isEmpty(channelFutures)) {
             return this;
         }
-        log.info("创建连接 ip: {} ,port: {}", ip, port);
+        log.debug("创建连接 ip: {} ,port: {}", ip, port);
         //循环创建连接
         for (int i = 0; i < count; i++) {
             try {

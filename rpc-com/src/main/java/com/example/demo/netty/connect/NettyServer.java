@@ -38,7 +38,7 @@ public class NettyServer {
      * @throws Exception
      */
     public void init(int port) throws Exception {
-        log.info("开始服务端。。。");
+        log.debug("开始服务端。。。");
         ServerBootstrap b = new ServerBootstrap();
         b.group(pGroup, cGroup)
                 .channel(NioServerSocketChannel.class)
@@ -62,7 +62,7 @@ public class NettyServer {
                     }
                 });
         ChannelFuture cf = b.bind(port).sync();
-        log.info("初始化服务端完成。。。");
+        log.debug("初始化服务端完成。。。");
         //阻塞线程
 //        cf.channel().closeFuture().sync();
     }

@@ -24,7 +24,7 @@ public class DemoApplicationTests {
     @Test
     public void cxt() {
         UserInfoService bean = applicationContext.getBean(UserInfoService.class);
-        log.info(bean.getCompareDto("2333").toString());
-        log.info(bean.toString());
+        log.debug(bean.getCompareDto("2333").toString());
+        log.debug(bean.toString());
     }
 }

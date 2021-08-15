@@ -41,7 +41,7 @@ public class FrameWork {
         Class[] classType = ClassUtils.getClassType(param);
         Method method = clazz.getMethod(methodStr, classType);
         //反射执行方法
-        log.info("执行 {}.{}方法 参数是 {}",classPathStr,methodStr, JSON.toJSONString(param));
+        log.debug("执行 {}.{}方法 参数是 {}",classPathStr,methodStr, JSON.toJSONString(param));
         Object result = method.invoke(contextBean, param);
         return result;
     }
