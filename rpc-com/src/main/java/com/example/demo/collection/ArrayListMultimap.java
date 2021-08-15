@@ -1,5 +1,6 @@
 package com.example.demo.collection;
 
+import com.example.demo.dto.ImmutablePair;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
@@ -11,12 +12,7 @@ public class ArrayListMultimap<K, V> {
     /**
      * 可修改value集合
      */
-    private ConcurrentHashMap<K, List<V>> map;
-
-    /**
-     * 不可修改value集合
-     */
-    private ConcurrentHashMap<K, List<V>> unmodifyValueMap;
+    private ConcurrentHashMap<K, ImmutablePair<List<V>, List<V>>> map;
 
     /**
      * key 集合
@@ -31,15 +27,16 @@ public class ArrayListMultimap<K, V> {
 
     /**
      * 构造方法
+     *
      * @param size
      */
     public ArrayListMultimap(Integer size) {
         this.map = new ConcurrentHashMap<>(size);
-        this.unmodifyValueMap = new ConcurrentHashMap<>(size);
     }
 
     /**
      * 创建方法
+     *
      * @return
      */
     public static ArrayListMultimap create() {
@@ -48,18 +45,26 @@ public class ArrayListMultimap<K, V> {
 
     /**
      * 创建方法
+     *
      * @return
      */
     public static ArrayListMultimap create(Integer size) {
         return new ArrayListMultimap(size);
     }
 
+    /**
+     * 获取或默认
+     * @param key
+     * @return
+     */
     public List<V> get(K key) {
-        return unmodifyValueMap.get(key);
+        return map.getOrDefault(key, new ImmutablePair<>(new ArrayList<>(), null)).getRight();
     }
+
 
     /**
      * 放入map
+     *
      * @param key
      * @param value
      * @return
@@ -67,8 +72,6 @@ public class ArrayListMultimap<K, V> {
     public synchronized List<V> put(K key, V value) {
         //放入map值
         List<V> result = putMap(key, value);
-        //放入不可修改map值
-        unmodifyValueMap.put(key, unmodify(result));
         //重新生成数据
         revertKeyAndValueList();
         return result;
@@ -76,15 +79,17 @@ public class ArrayListMultimap<K, V> {
 
     /**
      * 放入值
+     *
      * @param key
      * @param value
      * @return
      */
     private synchronized List<V> putMap(K key, V value) {
-        List<V> result = map.getOrDefault(key, new ArrayList<>());
-        result.add(value);
-        map.putIfAbsent(key, result);
-        return result;
+        ImmutablePair<List<V>, List<V>> pair = map.getOrDefault(key, new ImmutablePair<>(new ArrayList<>(), null));
+        pair.getLeft().add(value);
+        pair.setRight(unmodify(pair.getLeft()));
+        map.putIfAbsent(key, pair);
+        return pair.getRight();
     }
 
     /**
@@ -94,10 +99,10 @@ public class ArrayListMultimap<K, V> {
      * @return
      */
     public List<V> remove(K key) {
-        map.remove(key);
+        ImmutablePair<List<V>, List<V>> pair = map.remove(key);
         //重新生成数据
         revertKeyAndValueList();
-        return unmodifyValueMap.remove(key);
+        return pair.getRight();
     }
 
     /**
@@ -108,14 +113,15 @@ public class ArrayListMultimap<K, V> {
      * @return
      */
     public synchronized List<V> removeElement(K key, V v) {
-        List<V> vs = map.get(key);
-        if (!CollectionUtils.isEmpty(vs) && vs.contains(v)) {
+        ImmutablePair<List<V>, List<V>> pair = map.get(key);
+        List<V> left = pair.getLeft();
+        if (!CollectionUtils.isEmpty(left) && left.contains(v)) {
             //删除数据
-            vs.remove(v);
-            unmodifyValueMap.put(key, unmodify(vs));
+            left.remove(v);
+            pair.setRight(unmodify(left));
             //重新生成数据
             revertKeyAndValueList();
-            return vs;
+            return left;
         }
         return null;
     }
@@ -142,11 +148,13 @@ public class ArrayListMultimap<K, V> {
      */
     private void revertKeyAndValueList() {
         keys = unmodify(map.keySet().stream().collect(Collectors.toList()));
-        values = unmodify(map.values().stream().flatMap(Collection::stream).collect(Collectors.toList()));
+        values = unmodify(map.values().stream().map(ImmutablePair::getLeft)
+                .flatMap(Collection::stream).collect(Collectors.toList()));
     }
 
     /**
      * 不可修改集合
+     *
      * @param list
      * @return
      */
