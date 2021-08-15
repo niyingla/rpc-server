@@ -169,11 +169,8 @@ public class RpcServerPool {
             if (channelFuture.channel().isActive()) {
                 break;
             } else {
-                //带锁清空无效链接
-                synchronized (RpcServerPool.class) {
-                    //清空无效链接
-                    listMultimap.removeElement(serverName, channelFuture);
-                }
+                //清空无效链接
+                listMultimap.removeElement(serverName, channelFuture);
                 //重新获取一次
                 return getChannelByServerName(serverName);
             }

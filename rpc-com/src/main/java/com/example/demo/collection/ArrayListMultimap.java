@@ -116,15 +116,17 @@ public class ArrayListMultimap<K, V> {
      * @return
      */
     public synchronized List<V> removeElement(K key, V v) {
-        ImmutablePair<List<V>, List<V>> pair = map.get(key);
-        List<V> left = pair.getLeft();
-        if (!CollectionUtils.isEmpty(left) && left.contains(v)) {
-            //删除数据
-            left.remove(v);
-            pair.setRight(unmodify(left));
-            //重新生成数据
-            revertKeyAndValueList();
-            return left;
+        for (K k : map.keySet()) {
+            ImmutablePair<List<V>, List<V>> pair = map.get(k);
+            List<V> left = pair.getLeft();
+            if (!CollectionUtils.isEmpty(left) && left.contains(v)) {
+                //删除数据
+                left.remove(v);
+                pair.setRight(unmodify(left));
+                //重新生成数据
+                revertKeyAndValueList();
+                return left;
+            }
         }
         return null;
     }
