@@ -98,7 +98,7 @@ public class ArrayListMultimap<K, V> {
      * @param key
      * @return
      */
-    public List<V> remove(K key) {
+    public synchronized List<V> remove(K key) {
         ImmutablePair<List<V>, List<V>> pair = map.remove(key);
         //重新生成数据
         revertKeyAndValueList();
