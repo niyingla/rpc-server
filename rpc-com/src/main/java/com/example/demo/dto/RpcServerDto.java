@@ -1,8 +1,6 @@
 package com.example.demo.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +13,7 @@ public class RpcServerDto {
     private String name;
     private List<Example> examples = new ArrayList<>();
 
-    @Data
+
     public class Example{
         public Example(String ip, int port) {
             this.ip = ip;

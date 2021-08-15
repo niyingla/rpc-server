@@ -1,7 +1,6 @@
 package com.example.demo.factory;
 
 import com.example.demo.rpc.factory.RpcFactory;
-import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Proxy;
 

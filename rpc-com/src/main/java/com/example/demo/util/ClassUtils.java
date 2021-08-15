@@ -1,11 +1,10 @@
 package com.example.demo.util;
 
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author pikaqiu
  */
-@Slf4j
+
 public class ClassUtils {
     /**
      * 获取参数类型

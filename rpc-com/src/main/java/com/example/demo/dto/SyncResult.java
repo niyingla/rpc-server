@@ -1,6 +1,5 @@
 package com.example.demo.dto;
 
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @program: demo
@@ -8,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
  * @author: xiaoye
  * @create: 2019-08-12 16:29
  **/
-@Slf4j
 public class SyncResult {
     volatile boolean isRead = false;
     Object Data = null;
