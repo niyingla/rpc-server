@@ -1,5 +1,6 @@
 package com.example.demo.rpc.context;
 
+import com.example.demo.collection.ArrayListMultimap;
 import com.example.demo.dto.RpcServerDto;
 import com.example.demo.dto.ServerDto;
 import com.example.demo.netty.config.RpcSource;
@@ -8,7 +9,6 @@ import com.example.demo.rpc.factory.StartFactory;
 import com.example.demo.rpc.util.RpcClient;
 import com.example.demo.rpc.util.SpringUtil;
 import com.example.demo.util.RedisUtil;
-import com.google.common.collect.ArrayListMultimap;
 import io.netty.channel.ChannelFuture;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -152,25 +152,27 @@ public class RpcServerPool {
         ArrayListMultimap<String, ChannelFuture> listMultimap = channelMap.get(serverName);
         ChannelFuture channelFuture = null;
         //不存在重新链接
-        if (listMultimap == null || listMultimap.size() == 0) {
+        if (listMultimap == null || listMultimap.valueSize() == 0) {
             //可以间隔一定时间才进行下一次链接
             reConnect(serverName);
+            //重新取链接
+            listMultimap = channelMap.get(serverName);
         }
-        for (; listMultimap.size() > 0; ) {
+        for (; listMultimap.valueSize() > 0; ) {
             //随件获取一个链接
-            Collection<ChannelFuture> channelFutures = listMultimap.values();
+            List<ChannelFuture> channelFutures = listMultimap.values();
+            //随机祛暑下标
             int index = (int) (Math.random() * (channelFutures.size()));
-            channelFuture = channelFutures.toArray(new ChannelFuture[0])[index];
+            //转数组
+            channelFuture = channelFutures.get(index);
             //链接存活 直接return
-            if (channelFuture != null && channelFuture.channel().isActive()) {
+            if (channelFuture.channel().isActive()) {
                 break;
             } else {
+                //带锁清空无效链接
                 synchronized (RpcServerPool.class) {
                     //清空无效链接
-                    channelFutures.remove(channelFuture);
-                    if (CollectionUtils.isEmpty(channelFutures)) {
-                        channelMap.remove(serverName);
-                    }
+                    listMultimap.removeElement(serverName, channelFuture);
                 }
                 //重新获取一次
                 return getChannelByServerName(serverName);
@@ -185,6 +187,7 @@ public class RpcServerPool {
     public void checkConnect() {
         for (String serverName : serverDtoMap.keySet()) {
             RpcServerDto rpcServerDto = serverDtoMap.get(serverName);
+            //清湖已经存在的实例集合
             rpcServerDto.clearExamples();
             //加载当前服务链接
             addAllServer(serverName);
@@ -193,7 +196,9 @@ public class RpcServerPool {
         }
     }
 
-
+    /**
+     * 检查定时链接任务
+     */
     public void checkTask(){
         //持续注册 每60s注册一次
         Executors.newSingleThreadScheduledExecutor(r -> {

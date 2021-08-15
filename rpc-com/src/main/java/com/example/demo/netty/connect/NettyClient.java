@@ -1,8 +1,8 @@
 package com.example.demo.netty.connect;
 
+import com.example.demo.collection.ArrayListMultimap;
 import com.example.demo.netty.code.MarshallingCodeCFactory;
 import com.example.demo.netty.handler.ResultHandler;
-import com.google.common.collect.ArrayListMultimap;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;

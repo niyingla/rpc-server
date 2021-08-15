@@ -2,6 +2,8 @@ package com.example.demo.dto;
 
 
 
+import lombok.Data;
+
 import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.HashSet;
@@ -12,6 +14,7 @@ import java.util.HashSet;
  * @Date 2019/7/2
  */
 
+@Data
 public class CompareDto implements Serializable {
 
     @NotBlank
