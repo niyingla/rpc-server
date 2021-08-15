@@ -58,7 +58,7 @@ public class ArrayListMultimap<K, V> {
      * @return
      */
     public List<V> get(K key) {
-        return map.getOrDefault(key, new ImmutablePair<>(new ArrayList<>(), null)).getRight();
+        return map.getOrDefault(key, new ImmutablePair<>(new ArrayList<>(), new ArrayList<>())).getRight();
     }
 
 
