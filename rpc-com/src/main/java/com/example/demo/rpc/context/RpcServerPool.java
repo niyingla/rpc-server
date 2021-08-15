@@ -1,13 +1,16 @@
 package com.example.demo.rpc.context;
 
 import com.example.demo.dto.RpcServerDto;
+import com.example.demo.dto.ServerDto;
 import com.example.demo.netty.config.RpcSource;
 import com.example.demo.netty.connect.NettyClient;
 import com.example.demo.rpc.factory.StartFactory;
 import com.example.demo.rpc.util.RpcClient;
 import com.example.demo.rpc.util.SpringUtil;
+import com.example.demo.util.RedisUtil;
 import com.google.common.collect.ArrayListMultimap;
 import io.netty.channel.ChannelFuture;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
@@ -75,7 +78,7 @@ public class RpcServerPool {
             resource = SpringUtil.getBean(JedisPool.class).getResource();
             String key = serverPre + serverName + ":" + ip + ":" + port;
             //设置注册信息
-            resource.set(key, ip + ":" + port);
+            resource.set(key.getBytes(), RedisUtil.serialize(new ServerDto(port, ip, serverName)));
             //90s 过期
             resource.expire(key, 90);
         } finally {
@@ -119,13 +122,10 @@ public class RpcServerPool {
             NettyClient nettyClient = NettyClient.geInstance();
             //获取服务channel列表
             ArrayListMultimap<String, ChannelFuture> futureList = channelMap.getOrDefault(serverName, ArrayListMultimap.create());
-            //初始化客户端
-            nettyClient.initClient();
             //创建链接
             nettyClient.createConnect(rpcSource.getConnectCount(), example.getIp(), example.getPort(), futureList);
-            if (!channelMap.containsKey(serverName)) {
-                channelMap.put(serverName, futureList);
-            }
+            //放入集合
+            channelMap.putIfAbsent(serverName, futureList);
         }
     }
 
@@ -134,7 +134,7 @@ public class RpcServerPool {
      *
      * @param serverName
      */
-    public void reConnect(String serverName) {
+    public synchronized void reConnect(String serverName) {
         channelMap.remove(serverName);
         //获取注册列表
         addAllServer(serverName);
@@ -153,7 +153,7 @@ public class RpcServerPool {
         ChannelFuture channelFuture = null;
         //不存在重新链接
         if (listMultimap == null || listMultimap.size() == 0) {
-            //todo 可以间隔一定时间才进行下一次链接
+            //可以间隔一定时间才进行下一次链接
             reConnect(serverName);
         }
         for (; listMultimap.size() > 0; ) {
@@ -221,10 +221,7 @@ public class RpcServerPool {
      * @return
      */
     public void serverAdd(String serverName, String ip, int port) {
-        RpcServerDto serverDto = serverDtoMap.get(serverName);
-        if (serverDto == null) {
-            serverDto = new RpcServerDto(serverName);
-        }
+        RpcServerDto serverDto = serverDtoMap.getOrDefault(serverName, new RpcServerDto(serverName));
         serverDto.addExample(ip, port);
         serverDtoMap.put(serverName, serverDto);
     }
@@ -235,10 +232,7 @@ public class RpcServerPool {
      * @param serverName
      */
     public void addServerName(String serverName) {
-        if (!channelMap.containsKey(serverName)) {
-            RpcServerDto serverDto = new RpcServerDto(serverName);
-            serverDtoMap.put(serverName, serverDto);
-        }
+        serverDtoMap.putIfAbsent(serverName, new RpcServerDto(serverName));
     }
 
     /**
@@ -259,7 +253,7 @@ public class RpcServerPool {
         Jedis resource = null;
         try {
             resource = SpringUtil.getBean(JedisPool.class).getResource();
-            Set<String> keys = resource.keys(serverPre + serverName+":*");
+            Set<String> keys = resource.keys(serverPre + serverName + ":*");
             for (String key : keys) {
                 //添加一个服务练剑
                 addServer(serverName, resource, key);
@@ -278,11 +272,11 @@ public class RpcServerPool {
      * @param resource
      * @param key
      */
-    private void addServer(String serverName, Jedis resource, String key) {
-        String ipAndPort = resource.get(key);
-        if (ipAndPort != null && ipAndPort.contains(":")) {
-            String[] split = ipAndPort.split(":");
-            serverAdd(serverName, split[0], Integer.valueOf(split[1]));
+    private synchronized void addServer(String serverName, Jedis resource, String key) {
+        byte[] resultBytes = resource.get(key.getBytes());
+        ServerDto serverDto = RedisUtil.unserizlize(resultBytes);
+        if (serverDto != null && StringUtils.equals(serverName, serverDto.getServerName())) {
+            serverAdd(serverName, serverDto.getIp(), serverDto.getPort());
         }
     }
 }

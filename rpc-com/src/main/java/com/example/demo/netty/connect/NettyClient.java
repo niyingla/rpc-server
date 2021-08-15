@@ -30,11 +30,23 @@ public class NettyClient {
 
     private static volatile NettyClient instance;
 
+    /**
+     * 获取客户端实例
+     * @return
+     */
     public static NettyClient geInstance() {
         if (instance == null) {
             synchronized (NettyClient.class) {
                 if (instance == null) {
                     instance = new NettyClient();
+                    //自动 初始化客户端
+                    try {
+                        instance.initClient();
+                    } catch (Exception e) {
+                        instance.close();
+                        log.error("初始化客户端实例失败", e);
+                        throw new RuntimeException("初始化客户端实例失败");
+                    }
                 }
             }
         }
@@ -46,7 +58,7 @@ public class NettyClient {
      *
      * @return
      */
-    public synchronized NettyClient initClient() {
+    private synchronized NettyClient initClient() {
         if (hasInit) {
             return this;
         }
