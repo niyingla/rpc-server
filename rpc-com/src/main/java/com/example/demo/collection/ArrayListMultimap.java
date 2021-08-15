@@ -122,7 +122,14 @@ public class ArrayListMultimap<K, V> {
             if (!CollectionUtils.isEmpty(left) && left.contains(v)) {
                 //删除数据
                 left.remove(v);
-                pair.setRight(unmodify(left));
+                //当前节点没有元素
+                if (left.size() == 0) {
+                    //去掉当前节点
+                    map.remove(key);
+                } else {
+                    //重新设置返回值
+                    pair.setRight(unmodify(left));
+                }
                 //重新生成数据
                 revertKeyAndValueList();
                 return left;
