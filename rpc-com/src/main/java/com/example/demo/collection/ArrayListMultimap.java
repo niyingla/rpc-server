@@ -7,6 +7,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+/**
+ * @author huohuo
+ */
 public class ArrayListMultimap<K, V> {
 
     /**
