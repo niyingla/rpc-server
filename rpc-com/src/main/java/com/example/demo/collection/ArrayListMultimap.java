@@ -84,8 +84,6 @@ public class ArrayListMultimap<K, V> {
         List<V> result = map.getOrDefault(key, new ArrayList<>());
         result.add(value);
         map.putIfAbsent(key, result);
-        //重新生成数据
-        revertKeyAndValueList();
         return result;
     }
 
