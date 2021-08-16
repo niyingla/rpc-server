@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * @author pikaqiu
@@ -26,6 +25,9 @@ public class NettyClient {
     static Logger log = LoggerFactory.getLogger(NettyClient.class.getName());
     private Bootstrap b = new Bootstrap();
     private EventLoopGroup group = new NioEventLoopGroup();
+    /**
+     * 是否已经初始化
+     */
     private boolean hasInit = false;
 
     private static volatile NettyClient instance;

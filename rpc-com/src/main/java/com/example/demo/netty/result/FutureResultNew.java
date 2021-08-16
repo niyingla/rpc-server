@@ -40,4 +40,8 @@ public class FutureResultNew {
         CompletableFuture future = concurrentHashMap.get(requestId);
         future.complete(result);
     }
+
+    public static void removeResult(String requestId){
+        concurrentHashMap.remove(requestId);
+    }
 }
