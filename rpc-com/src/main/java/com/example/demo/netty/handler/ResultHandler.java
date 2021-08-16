@@ -17,9 +17,9 @@ public class ResultHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if(msg instanceof RpcRequestDto){
+        if (msg instanceof RpcRequestDto) {
             RpcRequestDto requestDto = (RpcRequestDto) msg;
-            FutureResultNew.putResult(requestDto.getRequestId(), requestDto.getResult());
+            FutureResultNew.remove(requestDto.getRequestId(), requestDto.getResult());
         }
     }
 }

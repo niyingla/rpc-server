@@ -41,7 +41,8 @@ public class FutureResultNew {
         future.complete(result);
     }
 
-    public static void removeResult(String requestId){
-        concurrentHashMap.remove(requestId);
+    public static void remove(String requestId, Object result) {
+        CompletableFuture future = concurrentHashMap.remove(requestId);
+        future.complete(result);
     }
 }

@@ -37,9 +37,6 @@ public class ChannelUtils {
       } catch (Exception e) {
         log.error("获取结果报错：", e);
         throw new RuntimeException("获取结果报错");
-      }finally {
-        //去掉结果集
-        FutureResultNew.removeResult(rpcRequestDto.getRequestId());
       }
     }
 
