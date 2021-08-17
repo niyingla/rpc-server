@@ -5,7 +5,6 @@ import com.example.demo.dto.RpcServerDto;
 import com.example.demo.dto.ServerDto;
 import com.example.demo.netty.config.RpcSource;
 import com.example.demo.netty.connect.NettyClient;
-import com.example.demo.rpc.factory.StartFactory;
 import com.example.demo.rpc.util.RpcClient;
 import com.example.demo.rpc.util.SpringUtil;
 import com.example.demo.util.RedisUtil;
@@ -14,11 +13,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
-import org.springframework.util.CollectionUtils;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -66,17 +67,19 @@ public class RpcServerPool {
         instance = new RpcServerPool(rpcContext);
         return instance;
     }
+
     /**
      * 注册服务
+     *
      * @param serverName
      * @param ip
      * @param port
      */
-    public static void registerServer(String serverName, String ip, int port) {
+    public static void registerServer(String nameSpace, String serverName, String ip, int port) {
         Jedis resource = null;
         try {
             resource = SpringUtil.getBean(JedisPool.class).getResource();
-            String key = serverPre + serverName + ":" + ip + ":" + port;
+            String key = serverPre + nameSpace + serverName + ":" + ip + ":" + port;
             //设置注册信息
             resource.set(key.getBytes(), RedisUtil.serialize(new ServerDto(port, ip, serverName)));
             //90s 过期
@@ -137,7 +140,7 @@ public class RpcServerPool {
     public synchronized void reConnect(String serverName) {
         channelMap.remove(serverName);
         //获取注册列表
-        addAllServer(serverName);
+        addAllServer(rpcContext.getRpcSource().getNameSpace(), serverName);
         //创建连接
         createConnect(serverName, serverDtoMap.get(serverName));
     }
@@ -187,7 +190,7 @@ public class RpcServerPool {
             //清湖已经存在的实例集合
             rpcServerDto.clearExamples();
             //加载当前服务链接
-            addAllServer(serverName);
+            addAllServer(rpcContext.getRpcSource().getNameSpace(), serverName);
             //创建连接
             createConnect(serverName, rpcServerDto);
         }
@@ -242,20 +245,20 @@ public class RpcServerPool {
      */
     public void loadServer() {
         for (String serverName : serverDtoMap.keySet()) {
-            addAllServer(serverName);
+            addAllServer(rpcContext.getRpcSource().getNameSpace(), serverName);
         }
     }
 
     /**
      * 当前服务名链接所有服务
-     *
-     * @param serverName
+     * @param nameSpace 名称空间
+     * @param serverName 服务名
      */
-    private void addAllServer(String serverName) {
+    private void addAllServer(String nameSpace, String serverName) {
         Jedis resource = null;
         try {
             resource = SpringUtil.getBean(JedisPool.class).getResource();
-            Set<String> keys = resource.keys(serverPre + serverName + ":*");
+            Set<String> keys = resource.keys(serverPre + nameSpace + serverName + ":*");
             for (String key : keys) {
                 //添加一个服务练剑
                 addServer(serverName, resource, key);

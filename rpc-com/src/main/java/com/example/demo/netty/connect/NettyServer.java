@@ -14,8 +14,6 @@ import io.netty.handler.logging.LoggingHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Random;
-
 /**
  * @program: demo
  * @description:
@@ -28,9 +26,6 @@ public class NettyServer {
 
     private EventLoopGroup pGroup = new NioEventLoopGroup();
     private EventLoopGroup cGroup = new NioEventLoopGroup();
-
-    private ChannelFuture cf;
-
 
     /**
      * 初始化服务端

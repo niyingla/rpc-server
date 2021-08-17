@@ -20,6 +20,8 @@ public class RpcSource {
      */
     private int port = 33333;
 
+    private String nameSpace = "nameSpace";
+
     private String serverName;
 
     private String[] commonReqAspect = new String[]{};;
@@ -72,5 +74,13 @@ public class RpcSource {
 
     public void setServerName(String serverName) {
         this.serverName = serverName;
+    }
+
+    public String getNameSpace() {
+        return nameSpace;
+    }
+
+    public void setNameSpace(String nameSpace) {
+        this.nameSpace = nameSpace;
     }
 }
