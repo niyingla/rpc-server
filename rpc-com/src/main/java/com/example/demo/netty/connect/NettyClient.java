@@ -107,9 +107,7 @@ public class NettyClient {
             try {
                 //链接服务端
                 ChannelFuture channelFuture = b.connect(ip, port).sync();
-                synchronized (NettyClient.class) {
-                    channelFuturesMultimap.put(ip + ":" + port, channelFuture);
-                }
+                channelFuturesMultimap.put(ip + ":" + port, channelFuture);
             } catch (Exception e) {
                 log.error("链接错误...", e);
             }

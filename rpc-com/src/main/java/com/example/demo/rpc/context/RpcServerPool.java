@@ -124,11 +124,9 @@ public class RpcServerPool {
             //获取客户端链接实例
             NettyClient nettyClient = NettyClient.geInstance();
             //获取服务channel列表
-            ArrayListMultimap<String, ChannelFuture> futureList = channelMap.getOrDefault(serverName, ArrayListMultimap.create());
+            ArrayListMultimap<String, ChannelFuture> futureList = channelMap.computeIfAbsent(serverName, key -> ArrayListMultimap.create());
             //创建链接
             nettyClient.createConnect(rpcSource.getConnectCount(), example.getIp(), example.getPort(), futureList);
-            //放入集合
-            channelMap.putIfAbsent(serverName, futureList);
         }
     }
 
@@ -227,9 +225,8 @@ public class RpcServerPool {
      * @return
      */
     public void serverAdd(String serverName, String ip, int port) {
-        RpcServerDto serverDto = serverDtoMap.getOrDefault(serverName, new RpcServerDto(serverName));
+        RpcServerDto serverDto = serverDtoMap.computeIfAbsent(serverName, key -> new RpcServerDto(serverName));
         serverDto.addExample(ip, port);
-        serverDtoMap.put(serverName, serverDto);
     }
 
     /**

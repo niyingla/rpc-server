@@ -88,10 +88,9 @@ public class ArrayListMultimap<K, V> {
      * @return
      */
     private synchronized List<V> putMap(K key, V value) {
-        ImmutablePair<List<V>, List<V>> pair = map.getOrDefault(key, new ImmutablePair<>(new ArrayList<>(), null));
+        ImmutablePair<List<V>, List<V>> pair = map.computeIfAbsent(key, k -> new ImmutablePair<>(new ArrayList<>(), null));
         pair.getLeft().add(value);
         pair.setRight(unmodify(pair.getLeft()));
-        map.putIfAbsent(key, pair);
         return pair.getRight();
     }
 
