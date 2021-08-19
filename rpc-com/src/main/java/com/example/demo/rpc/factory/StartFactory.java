@@ -96,8 +96,6 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
         rpcContext.setRpcServerPool(RpcServerPool.getNewInstance(rpcContext));
         //设置spring上下文
         rpcContext.setApplicationContext(applicationContext);
-        // 注册到服务列表
-
         return rpcContext;
     }
 
