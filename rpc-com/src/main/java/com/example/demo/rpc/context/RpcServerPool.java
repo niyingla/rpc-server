@@ -157,7 +157,7 @@ public class RpcServerPool {
     public ChannelFuture getChannelByServerName(String serverName) {
         //获取服务连接池
         ArrayListMultimap<String, ChannelFuture> listMultimap = channelMap.get(serverName);
-        ChannelFuture channelFuture = null;
+        ChannelFuture channelFuture;
         //不存在重新链接
         if (listMultimap == null || listMultimap.valueSize() == 0) {
             //可以间隔一定时间才进行下一次链接
