@@ -15,7 +15,7 @@ public class ProxyFactory {
      * @param <T>
      * @return
      */
-    public static <T> T getInterfaceInfo(Class<T> interfaceClass) {
+    public static <T> T getInterfaceProxy(Class<T> interfaceClass) {
         Class[] interfaceClassArray = new Class[]{interfaceClass};
         T server = (T) Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), interfaceClassArray, new RpcFactory(interfaceClass));
         return server;

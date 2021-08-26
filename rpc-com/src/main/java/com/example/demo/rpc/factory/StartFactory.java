@@ -34,7 +34,7 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
      */
     public <T> void setBean(RpcContext rpcContext, Class<T> interfaceServer) {
         //生成代理对象
-        T proxyObject = ProxyFactory.getInterfaceInfo(interfaceServer);
+        T proxyObject = ProxyFactory.getInterfaceProxy(interfaceServer);
         //注册对象到spring
         rpcContext.getBeanFactory().registerSingleton(StringUtils.lowerFirst(interfaceServer.getSimpleName()), proxyObject);
     }

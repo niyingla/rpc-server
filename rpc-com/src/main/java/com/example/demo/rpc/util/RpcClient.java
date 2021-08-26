@@ -6,6 +6,7 @@ import com.example.demo.dto.RpcRequestDto;
 import com.example.demo.inteface.Aspect;
 import com.example.demo.monad.Try;
 import com.example.demo.rpc.context.RpcServerPool;
+import com.example.demo.rpc.factory.StartFactory;
 import com.example.demo.util.ChannelUtils;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
@@ -41,7 +42,7 @@ public class RpcClient {
         //参数对象转换成能字节  远程调用
         RpcServerCase rpcServerCase = (RpcServerCase) interfaceClass.getAnnotation(RpcServerCase.class);
         //获取请求channel
-        ChannelFuture channel = RpcServerPool.getInstance().getChannelByServerName(rpcServerCase.serverName());
+        ChannelFuture channel = StartFactory.getRpcContext().getRpcServerPool().getChannelByServerName(rpcServerCase.serverName());
         if (channel == null) {
             throw new RuntimeException("服务不存在");
         }

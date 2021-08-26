@@ -33,17 +33,26 @@ public class RpcServerPool {
     /**
      * key 服务名 value 初始化链接参数
      */
-    private final Map<String, RpcServerDto> serverDtoMap = new HashMap<>();
+    private final Map<String, RpcServerDto> serverMap = new HashMap<>();
 
     /**
-     * key 服务名 value 链接信息
+     * key 服务名 value 链接信息map（key ip+端口 value 连接数组）
      */
     private static Map<String, ArrayListMultimap<String,ChannelFuture>> channelMap = new HashMap<>();
 
+    /**
+     * redis 注册地址前缀
+     */
     private static String serverPre = "server:pre:";
 
+    /**
+     * 当前服务实例
+     */
     private static volatile RpcServerPool instance;
 
+    /**
+     * 上下文对象
+     */
     private RpcContext rpcContext;
 
     private RpcServerPool(RpcContext rpcContext) {
@@ -80,10 +89,8 @@ public class RpcServerPool {
         try {
             resource = SpringUtil.getBean(JedisPool.class).getResource();
             String key = serverPre + nameSpace + serverName + ":" + ip + ":" + port;
-            //设置注册信息
-            resource.set(key.getBytes(), RedisUtil.serialize(new ServerDto(port, ip, serverName)));
-            //90s 过期
-            resource.expire(key, 90);
+            //设置注册信息 90s失效
+            resource.setex(key.getBytes(), 90, RedisUtil.serialize(new ServerDto(port, ip, serverName)));
         } finally {
             if (resource != null) {
                 resource.close();
@@ -100,8 +107,8 @@ public class RpcServerPool {
         log.debug("开始获取服务列表...");
         loadServer();
         log.debug("开始连接服务列表...");
-        for (String serverName : serverDtoMap.keySet()) {
-            RpcServerDto rpcServerDto = serverDtoMap.get(serverName);
+        for (String serverName : serverMap.keySet()) {
+            RpcServerDto rpcServerDto = serverMap.get(serverName);
             //创建链接
             createConnect(serverName, rpcServerDto);
         }
@@ -143,7 +150,7 @@ public class RpcServerPool {
             //获取注册列表
             addAllServer(rpcContext.getRpcSource().getNameSpace(), serverName);
             //创建连接
-            createConnect(serverName, serverDtoMap.get(serverName));
+            createConnect(serverName, serverMap.get(serverName));
         }
     }
 
@@ -184,8 +191,8 @@ public class RpcServerPool {
      * 检查服务链接
      */
     public void checkConnect() {
-        for (String serverName : serverDtoMap.keySet()) {
-            RpcServerDto rpcServerDto = serverDtoMap.get(serverName);
+        for (String serverName : serverMap.keySet()) {
+            RpcServerDto rpcServerDto = serverMap.get(serverName);
             //清湖已经存在的实例集合
             rpcServerDto.clearExamples();
             //加载当前服务链接
@@ -225,7 +232,7 @@ public class RpcServerPool {
      * @return
      */
     public void serverAdd(String serverName, String ip, int port) {
-        RpcServerDto serverDto = serverDtoMap.computeIfAbsent(serverName, key -> new RpcServerDto(serverName));
+        RpcServerDto serverDto = serverMap.computeIfAbsent(serverName, key -> new RpcServerDto(serverName));
         serverDto.addExample(ip, port);
     }
 
@@ -235,14 +242,14 @@ public class RpcServerPool {
      * @param serverName
      */
     public void addServerName(String serverName) {
-        serverDtoMap.putIfAbsent(serverName, new RpcServerDto(serverName));
+        serverMap.putIfAbsent(serverName, new RpcServerDto(serverName));
     }
 
     /**
      * 加载所有服务
      */
     public void loadServer() {
-        for (String serverName : serverDtoMap.keySet()) {
+        for (String serverName : serverMap.keySet()) {
             addAllServer(rpcContext.getRpcSource().getNameSpace(), serverName);
         }
     }
