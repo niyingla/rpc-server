@@ -95,8 +95,9 @@ public class NettyClient {
      * @return
      */
     public NettyClient createConnect(int count, String ip, int port, ArrayListMultimap<String, ChannelFuture> channelFuturesMultimap) {
-        //获取当前server地址连接列表
-        List<ChannelFuture> channelFutures = channelFuturesMultimap.get(ip + ":" + port);
+        String channelKey = ip + ":" + port;
+        //获取当前server地址连接列表 key（ip + ":" + port） value （ChannelFuture 数组）
+        List<ChannelFuture> channelFutures = channelFuturesMultimap.get(channelKey);
         //已经存在就不连接了
         if (!CollectionUtils.isEmpty(channelFutures)) {
             return this;
@@ -107,7 +108,7 @@ public class NettyClient {
             try {
                 //链接服务端
                 ChannelFuture channelFuture = b.connect(ip, port).sync();
-                channelFuturesMultimap.put(ip + ":" + port, channelFuture);
+                channelFuturesMultimap.put(channelKey, channelFuture);
             } catch (Exception e) {
                 log.error("链接错误...", e);
             }

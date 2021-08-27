@@ -184,6 +184,7 @@ public class RpcServerPool {
      */
     public void checkConnect() {
         for (String serverName : serverDtoMap.keySet()) {
+            //放入集合
             RpcServerDto rpcServerDto = serverDtoMap.get(serverName);
             //清湖已经存在的实例集合
             rpcServerDto.clearExamples();
