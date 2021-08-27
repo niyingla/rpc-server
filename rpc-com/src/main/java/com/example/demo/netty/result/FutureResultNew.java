@@ -13,7 +13,7 @@ public class FutureResultNew {
     /**
      * 结果获取map 实际可以根据实例
      */
-    public static ConcurrentHashMap<String, CompletableFuture> concurrentHashMap = new ConcurrentHashMap(512);
+    private static ConcurrentHashMap<String, CompletableFuture> concurrentHashMap = new ConcurrentHashMap(512);
 
     /**
      * 获取结果

@@ -136,11 +136,15 @@ public class RpcServerPool {
      * @param serverName
      */
     public synchronized void reConnect(String serverName) {
-        channelMap.remove(serverName);
-        //获取注册列表
-        addAllServer(rpcContext.getRpcSource().getNameSpace(), serverName);
-        //创建连接
-        createConnect(serverName, serverDtoMap.get(serverName));
+        ArrayListMultimap<String, ChannelFuture> listMultimap = channelMap.get(serverName);
+        //不存在重新链接
+        if (listMultimap == null || listMultimap.valueSize() == 0) {
+            channelMap.remove(serverName);
+            //获取注册列表
+            addAllServer(rpcContext.getRpcSource().getNameSpace(), serverName);
+            //创建连接
+            createConnect(serverName, serverDtoMap.get(serverName));
+        }
     }
 
     /**
@@ -151,7 +155,7 @@ public class RpcServerPool {
     public ChannelFuture getChannelByServerName(String serverName) {
         //获取服务连接池
         ArrayListMultimap<String, ChannelFuture> listMultimap = channelMap.get(serverName);
-        ChannelFuture channelFuture = null;
+        ChannelFuture channelFuture;
         //不存在重新链接
         if (listMultimap == null || listMultimap.valueSize() == 0) {
             //可以间隔一定时间才进行下一次链接
@@ -159,24 +163,21 @@ public class RpcServerPool {
             //重新取链接
             listMultimap = channelMap.get(serverName);
         }
-        for (; listMultimap.valueSize() > 0; ) {
-            //随件获取一个链接
-            List<ChannelFuture> channelFutures = listMultimap.values();
-            //随机祛暑下标
-            int index = (int) (Math.random() * (channelFutures.size()));
-            //转数组
-            channelFuture = channelFutures.get(index);
-            //链接存活 直接return
-            if (channelFuture.channel().isActive()) {
-                break;
-            } else {
-                //清空无效链接
-                listMultimap.removeElement(serverName, channelFuture);
-                //重新获取一次
-                return getChannelByServerName(serverName);
-            }
+        //随件获取一个链接
+        List<ChannelFuture> channelFutures = listMultimap.values();
+        //随机祛暑下标
+        int index = (int) (Math.random() * (channelFutures.size()));
+        //转数组
+        channelFuture = channelFutures.get(index);
+        //链接存活 直接return
+        if (channelFuture.channel().isActive()) {
+            return channelFuture;
+        } else {
+            //清空无效链接
+            listMultimap.removeElement(serverName, channelFuture);
+            //重新获取一次
+            return getChannelByServerName(serverName);
         }
-        return channelFuture;
     }
 
     /**
@@ -213,7 +214,7 @@ public class RpcServerPool {
                     log.error("注册到服务列表失败", e);
                 }
             }
-        }, 90L, 60L, TimeUnit.SECONDS);
+        }, 10L, 300L, TimeUnit.SECONDS);
     }
 
     /**

@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
  *
  * @author pikaqiu
  */
-@Component
 public class RpcClient {
 
     static Logger log = LoggerFactory.getLogger(RpcClient.class.getName());
@@ -49,7 +48,7 @@ public class RpcClient {
         log.debug("发起远程请求 请求id：{} 请求目标服务：{} 目标方法：{}.{} 参数:{}", rpcRequestDto.getRequestId(), rpcServerCase.serverName(),
                 interfaceClass.getName(), rpcRequestDto.getMethodName(), JSON.toJSONString(rpcRequestDto.getArgs()));
         //发送请求
-        return ChannelUtils.sendChannelRpcRequest(channel, rpcRequestDto);
+        return ChannelUtils.sendChannelRpcRequest(channel, rpcRequestDto, rpcServerCase.retryCount());
     }
 
 

@@ -27,4 +27,11 @@ public @interface RpcServerCase {
     Class<? extends Aspect>[] proxyClass() default {};
 
 
+    /**
+     * 重试次数
+     * @return
+     */
+    int retryCount() default 3;
+
+
 }
