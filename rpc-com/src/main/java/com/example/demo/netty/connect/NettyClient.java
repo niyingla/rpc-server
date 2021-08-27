@@ -24,7 +24,7 @@ public class NettyClient {
 
     static Logger log = LoggerFactory.getLogger(NettyClient.class.getName());
     private Bootstrap b = new Bootstrap();
-    private EventLoopGroup group = new NioEventLoopGroup();
+    private EventLoopGroup group = new NioEventLoopGroup(4);
     /**
      * 是否已经初始化
      */
