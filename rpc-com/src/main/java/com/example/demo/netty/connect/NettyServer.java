@@ -24,8 +24,8 @@ public class NettyServer {
     static Logger log = LoggerFactory.getLogger(NettyClient.class.getName());
 
 
-    private EventLoopGroup pGroup = new NioEventLoopGroup();
-    private EventLoopGroup cGroup = new NioEventLoopGroup();
+    private EventLoopGroup pGroup = new NioEventLoopGroup(2);
+    private EventLoopGroup cGroup = new NioEventLoopGroup(4);
 
     /**
      * 初始化服务端

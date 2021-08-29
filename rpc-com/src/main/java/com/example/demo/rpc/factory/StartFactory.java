@@ -7,8 +7,9 @@ import com.example.demo.netty.config.RpcSource;
 import com.example.demo.netty.connect.NettyServer;
 import com.example.demo.rpc.context.RpcContext;
 import com.example.demo.rpc.context.RpcServerPool;
+import com.example.demo.util.LocalStringUtils;
 import com.example.demo.util.ScannerUtils;
-import com.example.demo.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -36,7 +37,7 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
         //生成代理对象
         T proxyObject = ProxyFactory.getInterfaceProxy(interfaceServer);
         //注册对象到spring
-        rpcContext.getBeanFactory().registerSingleton(StringUtils.lowerFirst(interfaceServer.getSimpleName()), proxyObject);
+        rpcContext.getBeanFactory().registerSingleton(LocalStringUtils.lowerFirst(interfaceServer.getSimpleName()), proxyObject);
     }
 
 
@@ -86,7 +87,7 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
         rpcContext.setDefaultListableBeanFactory(applicationContext.getBeanFactory());
         RpcSource rpcSource = applicationContext.getBean(RpcSource.class);
         //1.1 设置服务名
-        rpcSource.setServerName(org.apache.commons.lang3.StringUtils.isBlank(rpcSource.getServerName()) ?
+        rpcSource.setServerName(StringUtils.isBlank(rpcSource.getServerName()) ?
                 applicationContext.getEnvironment().getProperty("spring.application.name") : rpcSource.getServerName());
         //2 注入配置
         rpcContext.setRpcSource(rpcSource);

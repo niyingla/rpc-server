@@ -9,7 +9,7 @@ import java.util.Date;
  * @author: xiaoye
  * @create: 2019-08-05 17:11
  **/
-public class StringUtils {
+public class LocalStringUtils {
 
     static SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 
