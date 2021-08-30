@@ -8,7 +8,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
 
-public class ServerHeartBeatHandler extends ChannelInboundHandlerAdapter {
+public class ServerReqHandler extends ChannelInboundHandlerAdapter {
 
     /**
      * 接受远程请求 并响应结果

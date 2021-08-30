@@ -1,6 +1,6 @@
 package com.example.demo.annotation;
 
-import com.example.demo.inteface.ClientAspect;
+import com.example.demo.inteface.Aspect;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
@@ -24,7 +24,7 @@ public @interface RpcServerCase {
      * 代理类
      * @return
      */
-    Class<? extends ClientAspect>[] proxyClass() default {};
+    Class<? extends Aspect>[] proxyClass() default {};
 
 
     /**
