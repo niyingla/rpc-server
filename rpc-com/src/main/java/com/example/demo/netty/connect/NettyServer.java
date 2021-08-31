@@ -1,7 +1,7 @@
 package com.example.demo.netty.connect;
 
 import com.example.demo.netty.code.MarshallingCodeCFactory;
-import com.example.demo.netty.handler.ServerHeartBeatHandler;
+import com.example.demo.netty.handler.ServerReqHandler;
 import com.example.demo.rpc.context.RpcContext;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -53,7 +53,7 @@ public class NettyServer {
                         sc.pipeline().addLast(MarshallingCodeCFactory.buildMarshallingDecoder());
                         sc.pipeline().addLast(MarshallingCodeCFactory.buildMarshallingEncoder());
 //                      sc.pipeline().addLast(new JsonObjectDecoder());
-                        sc.pipeline().addLast(new ServerHeartBeatHandler());
+                        sc.pipeline().addLast(new ServerReqHandler());
                     }
                 });
         ChannelFuture cf = b.bind(port).sync();

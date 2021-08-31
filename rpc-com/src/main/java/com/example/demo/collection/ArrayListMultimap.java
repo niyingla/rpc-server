@@ -117,8 +117,8 @@ public class ArrayListMultimap<K, V> {
     public synchronized List<V> removeElement(K key, V v) {
         for (K k : map.keySet()) {
             ImmutablePair<List<V>, List<V>> pair = map.get(k);
-            List<V> left = pair.getLeft();
-            if (!CollectionUtils.isEmpty(left) && left.contains(v)) {
+            List<V> left;
+            if (pair != null && !CollectionUtils.isEmpty(left = pair.getLeft()) && left.contains(v)) {
                 //删除数据
                 left.remove(v);
                 //当前节点没有元素

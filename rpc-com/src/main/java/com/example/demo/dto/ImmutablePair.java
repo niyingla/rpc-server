@@ -7,7 +7,7 @@ package com.example.demo.dto;
 public class ImmutablePair<L, R> {
     public L left;
     public R right;
-    private static final ImmutablePair NULL = of((Object) null, (Object) null);
+    private static final ImmutablePair NULL = of(null, null);
 
     public static <L, R> ImmutablePair<L, R> nullPair() {
         return NULL;
