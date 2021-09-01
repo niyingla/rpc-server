@@ -17,7 +17,7 @@ public class ProxyFactory {
      */
     public static <T> T getInterfaceProxy(Class<T> interfaceClass) {
         Class[] interfaceClassArray = new Class[]{interfaceClass};
-        T server = (T) Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), interfaceClassArray, new RpcFactory(interfaceClass));
+        T server = (T) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), interfaceClassArray, new RpcFactory(interfaceClass));
         return server;
     }
 }
