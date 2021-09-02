@@ -2,20 +2,20 @@ package com.example.demo.dto;
 
 import java.io.Serializable;
 
-public class ServerDto implements Serializable {
+public class ServerInfo implements Serializable {
     private Integer port;
 
     private String ip;
 
     private String serverName;
 
-    public ServerDto(Integer port, String ip, String serverName) {
+    public ServerInfo(Integer port, String ip, String serverName) {
         this.port = port;
         this.ip = ip;
         this.serverName = serverName;
     }
 
-    public ServerDto() {
+    public ServerInfo() {
     }
 
     public Integer getPort() {
