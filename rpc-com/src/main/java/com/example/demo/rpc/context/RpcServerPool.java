@@ -201,6 +201,7 @@ public class RpcServerPool {
         if (!serverMap.containsKey(serverName)) {
             return;
         }
+        log.debug("新服务注册开始连接服务...");
         //获取客户端链接实例
         NettyClient nettyClient = NettyClient.geInstance();
         //获取服务channel列表
