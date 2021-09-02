@@ -33,7 +33,7 @@ public class FrameWork {
      * @throws IllegalAccessException
      */
     public static Object methodInvoke(String classPathStr,String methodStr,Object ... param) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        ClassLoader loader = ClassLoader.getSystemClassLoader();
+        ClassLoader loader = Thread.currentThread().getContextClassLoader();
         //获取类实例
         Class clazz = loader.loadClass(classPathStr);
         Object contextBean = StartFactory.getRpcContext().getApplicationContext().getBean(clazz);

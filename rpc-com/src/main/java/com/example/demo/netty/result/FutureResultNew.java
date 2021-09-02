@@ -41,7 +41,12 @@ public class FutureResultNew {
         future.complete(result);
     }
 
-    public static void remove(String requestId, Object result) {
+    /**
+     * 完成请求后设置结果
+     * @param requestId
+     * @param result
+     */
+    public static void removeAndComplete(String requestId, Object result) {
         CompletableFuture future = concurrentHashMap.remove(requestId);
         future.complete(result);
     }
