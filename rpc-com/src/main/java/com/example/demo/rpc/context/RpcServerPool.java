@@ -9,7 +9,7 @@ import com.example.demo.netty.config.RpcSource;
 import com.example.demo.netty.connect.NettyClient;
 import com.example.demo.rpc.util.RpcClient;
 import com.example.demo.rpc.util.SpringUtil;
-import com.example.demo.util.RedisUtil;
+import com.example.demo.util.SerializiUtil;
 import com.sun.xml.internal.messaging.saaj.util.Base64;
 import io.netty.channel.ChannelFuture;
 import org.apache.commons.lang3.StringUtils;
@@ -96,7 +96,7 @@ public class RpcServerPool {
     public static void registerServer(String nameSpace, ServerInfo serverInfo) {
         String key = serverPre + nameSpace + serverInfo.getServerName() + ":" + serverInfo.getIp() + ":" + serverInfo.getPort();
         //设置注册信息 90s失效
-        execRedisFunction(resource -> resource.setex(key.getBytes(), 90, RedisUtil.serialize(serverInfo)));
+        execRedisFunction(resource -> resource.setex(key.getBytes(), 90, SerializiUtil.serialize(serverInfo)));
     }
 
 
@@ -108,7 +108,7 @@ public class RpcServerPool {
      */
     public static void sendRegisterMsg(String nameSpace, ServerInfo serverInfo) {
         String key = registerPre + nameSpace;
-        execRedisFunction(resource -> resource.publish(key, RedisUtil.toBase64String(serverInfo)));
+        execRedisFunction(resource -> resource.publish(key, SerializiUtil.toBase64String(serverInfo)));
     }
 
     /**
@@ -340,7 +340,7 @@ public class RpcServerPool {
      */
     private synchronized void addServer(String serverName, Jedis resource, String key) {
         byte[] resultBytes = resource.get(key.getBytes());
-        ServerInfo serverInfo = RedisUtil.unserizlize(resultBytes);
+        ServerInfo serverInfo = SerializiUtil.unserizlize(resultBytes);
         if (serverInfo != null && StringUtils.equals(serverName, serverInfo.getServerName())) {
             serverAdd(serverName, serverInfo.getIp(), serverInfo.getPort());
         }

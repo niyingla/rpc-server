@@ -4,12 +4,9 @@ import com.example.demo.dto.ServerInfo;
 import com.example.demo.rpc.context.RpcContext;
 import com.example.demo.rpc.context.RpcServerPool;
 import com.example.demo.util.CommonUtils;
-import com.example.demo.util.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.Inet4Address;
-import java.net.UnknownHostException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 

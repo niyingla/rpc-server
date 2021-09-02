@@ -2,7 +2,7 @@ package com.example.demo.netty.config;
 
 import com.example.demo.dto.ServerInfo;
 import com.example.demo.rpc.context.RpcServerPool;
-import com.example.demo.util.RedisUtil;
+import com.example.demo.util.SerializiUtil;
 import redis.clients.jedis.JedisPubSub;
 
 public class RegisterPubMsgSub extends JedisPubSub {
@@ -14,7 +14,7 @@ public class RegisterPubMsgSub extends JedisPubSub {
     @Override
     public void onMessage(String channel, String message) {
         //接收到exit消息后退出
-        ServerInfo serverInfo = RedisUtil.Base64ToObj(message);
+        ServerInfo serverInfo = SerializiUtil.Base64ToObj(message);
         //连接服务
         RpcServerPool.getInstance().initiativeConnectServer(serverInfo.getIp(),serverInfo.getPort(),serverInfo.getServerName());
     }

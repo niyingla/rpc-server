@@ -7,7 +7,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-public class RedisUtil {
+public class SerializiUtil {
     /**
      * 序列化
      * @param obj
