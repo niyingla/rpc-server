@@ -74,7 +74,7 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
         //3 启动客户端
         NettyServer.start(rpcContext);
         //4 发起服务注册
-        RegisterServer.register(rpcContext);
+        RegisterServer.registerAndSubscribe(rpcContext);
     }
 
     /**

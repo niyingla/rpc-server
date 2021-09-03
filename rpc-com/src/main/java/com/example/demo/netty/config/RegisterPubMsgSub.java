@@ -14,8 +14,11 @@ public class RegisterPubMsgSub extends JedisPubSub {
     @Override
     public void onMessage(String channel, String message) {
         //接收到exit消息后退出
-        ServerInfo serverInfo = SerializiUtil.Base64ToObj(message);
-        //连接服务
-        RpcServerPool.getInstance().initiativeConnectServer(serverInfo.getIp(),serverInfo.getPort(),serverInfo.getServerName());
+        Object msg = SerializiUtil.Base64ToObj(message);
+        if (msg instanceof ServerInfo) {
+            ServerInfo serverInfo = (ServerInfo) msg;
+            //连接服务
+            RpcServerPool.getInstance().initiativeConnectServer(serverInfo.getIp(), serverInfo.getPort(), serverInfo.getServerName());
+        }
     }
 }

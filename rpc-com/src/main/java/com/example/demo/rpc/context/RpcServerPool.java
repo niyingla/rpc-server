@@ -3,14 +3,12 @@ package com.example.demo.rpc.context;
 import com.example.demo.collection.ArrayListMultimap;
 import com.example.demo.dto.RpcServerDto;
 import com.example.demo.dto.ServerInfo;
-import com.example.demo.monad.ExecuteRedisFunction;
-import com.example.demo.netty.config.RegisterPubMsgSub;
+import com.example.demo.netty.config.RegisterServer;
 import com.example.demo.netty.config.RpcSource;
 import com.example.demo.netty.connect.NettyClient;
 import com.example.demo.rpc.util.RpcClient;
 import com.example.demo.rpc.util.SpringUtil;
 import com.example.demo.util.SerializiUtil;
-import com.sun.xml.internal.messaging.saaj.util.Base64;
 import io.netty.channel.ChannelFuture;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -43,15 +41,6 @@ public class RpcServerPool {
      */
     private static Map<String, ArrayListMultimap<String, ChannelFuture>> channelMap = new HashMap<>();
 
-    /**
-     * redis 注册地址前缀
-     */
-    private static String serverPre = "server:pre:";
-
-    /**
-     * redis 注册地址前缀
-     */
-    private static String registerPre = "register:pre:";
 
     /**
      * 当前服务实例
@@ -85,57 +74,6 @@ public class RpcServerPool {
     public static RpcServerPool getNewInstance(@NonNull RpcContext rpcContext) {
         instance = new RpcServerPool(rpcContext);
         return instance;
-    }
-
-    /**
-     * 注册服务
-     *
-     * @param nameSpace
-     * @param serverInfo
-     */
-    public static void registerServer(String nameSpace, ServerInfo serverInfo) {
-        String key = serverPre + nameSpace + serverInfo.getServerName() + ":" + serverInfo.getIp() + ":" + serverInfo.getPort();
-        //设置注册信息 90s失效
-        execRedisFunction(resource -> resource.setex(key.getBytes(), 90, SerializiUtil.serialize(serverInfo)));
-    }
-
-
-    /**
-     * 发送开始注册信息
-     *
-     * @param nameSpace
-     * @param serverInfo
-     */
-    public static void sendRegisterMsg(String nameSpace, ServerInfo serverInfo) {
-        String key = registerPre + nameSpace;
-        execRedisFunction(resource -> resource.publish(key, SerializiUtil.toBase64String(serverInfo)));
-    }
-
-    /**
-     * 消费注册消息
-     *
-     * @param nameSpace
-     */
-    public static void consumerRegisterMessage(String nameSpace) {
-        String key = registerPre + nameSpace;
-        Jedis resource = SpringUtil.getBean(JedisPool.class).getResource();
-        resource.subscribe(new RegisterPubMsgSub(), key);
-
-    }
-
-    /**
-     * 执行redis方法
-     */
-    public static void execRedisFunction(ExecuteRedisFunction redisFunction) {
-        Jedis resource = null;
-        try {
-            resource = SpringUtil.getBean(JedisPool.class).getResource();
-            redisFunction.apply(resource);
-        } finally {
-            if (resource != null) {
-                resource.close();
-            }
-        }
     }
 
 
@@ -320,7 +258,7 @@ public class RpcServerPool {
         Jedis resource = null;
         try {
             resource = SpringUtil.getBean(JedisPool.class).getResource();
-            Set<String> keys = resource.keys(serverPre + nameSpace + serverName + ":*");
+            Set<String> keys = resource.keys(RegisterServer.SERVER_PRE + nameSpace + serverName + ":*");
             for (String key : keys) {
                 //添加一个服务练剑
                 addServer(serverName, resource, key);
