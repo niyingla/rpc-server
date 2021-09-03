@@ -2,12 +2,15 @@ package com.example.demo.rpc.context;
 
 import com.example.demo.collection.ArrayListMultimap;
 import com.example.demo.dto.RpcServerDto;
-import com.example.demo.dto.ServerDto;
+import com.example.demo.dto.ServerInfo;
+import com.example.demo.monad.ExecuteRedisFunction;
+import com.example.demo.netty.config.RegisterPubMsgSub;
 import com.example.demo.netty.config.RpcSource;
 import com.example.demo.netty.connect.NettyClient;
 import com.example.demo.rpc.util.RpcClient;
 import com.example.demo.rpc.util.SpringUtil;
-import com.example.demo.util.RedisUtil;
+import com.example.demo.util.SerializiUtil;
+import com.sun.xml.internal.messaging.saaj.util.Base64;
 import io.netty.channel.ChannelFuture;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -38,12 +41,17 @@ public class RpcServerPool {
     /**
      * key 服务名 value 链接信息map（key ip+端口 value 连接数组）
      */
-    private static Map<String, ArrayListMultimap<String,ChannelFuture>> channelMap = new HashMap<>();
+    private static Map<String, ArrayListMultimap<String, ChannelFuture>> channelMap = new HashMap<>();
 
     /**
      * redis 注册地址前缀
      */
     private static String serverPre = "server:pre:";
+
+    /**
+     * redis 注册地址前缀
+     */
+    private static String registerPre = "register:pre:";
 
     /**
      * 当前服务实例
@@ -61,6 +69,7 @@ public class RpcServerPool {
 
     /**
      * 获取当前实例
+     *
      * @return
      */
     public static RpcServerPool getInstance() {
@@ -69,6 +78,7 @@ public class RpcServerPool {
 
     /**
      * 获取一个新rpc客户端连接池实例
+     *
      * @param rpcContext
      * @return
      */
@@ -80,17 +90,47 @@ public class RpcServerPool {
     /**
      * 注册服务
      *
-     * @param serverName
-     * @param ip
-     * @param port
+     * @param nameSpace
+     * @param serverInfo
      */
-    public static void registerServer(String nameSpace, String serverName, String ip, int port) {
+    public static void registerServer(String nameSpace, ServerInfo serverInfo) {
+        String key = serverPre + nameSpace + serverInfo.getServerName() + ":" + serverInfo.getIp() + ":" + serverInfo.getPort();
+        //设置注册信息 90s失效
+        execRedisFunction(resource -> resource.setex(key.getBytes(), 90, SerializiUtil.serialize(serverInfo)));
+    }
+
+
+    /**
+     * 发送开始注册信息
+     *
+     * @param nameSpace
+     * @param serverInfo
+     */
+    public static void sendRegisterMsg(String nameSpace, ServerInfo serverInfo) {
+        String key = registerPre + nameSpace;
+        execRedisFunction(resource -> resource.publish(key, SerializiUtil.toBase64String(serverInfo)));
+    }
+
+    /**
+     * 消费注册消息
+     *
+     * @param nameSpace
+     */
+    public static void consumerRegisterMessage(String nameSpace) {
+        String key = registerPre + nameSpace;
+        Jedis resource = SpringUtil.getBean(JedisPool.class).getResource();
+        resource.subscribe(new RegisterPubMsgSub(), key);
+
+    }
+
+    /**
+     * 执行redis方法
+     */
+    public static void execRedisFunction(ExecuteRedisFunction redisFunction) {
         Jedis resource = null;
         try {
             resource = SpringUtil.getBean(JedisPool.class).getResource();
-            String key = serverPre + nameSpace + serverName + ":" + ip + ":" + port;
-            //设置注册信息 90s失效
-            resource.setex(key.getBytes(), 90, RedisUtil.serialize(new ServerDto(port, ip, serverName)));
+            redisFunction.apply(resource);
         } finally {
             if (resource != null) {
                 resource.close();
@@ -155,6 +195,22 @@ public class RpcServerPool {
     }
 
     /**
+     * 接受到注册消息主动链接服务
+     */
+    public void initiativeConnectServer(String ip, int port, String serverName) {
+        if (!serverMap.containsKey(serverName)) {
+            return;
+        }
+        log.debug("新服务注册开始连接服务...");
+        //获取客户端链接实例
+        NettyClient nettyClient = NettyClient.geInstance();
+        //获取服务channel列表
+        ArrayListMultimap<String, ChannelFuture> futureList = channelMap.computeIfAbsent(serverName, key -> ArrayListMultimap.create());
+        //创建链接
+        nettyClient.createConnect(rpcContext.getRpcSource().getConnectCount(), ip, port, futureList);
+    }
+
+    /**
      * 获取一个连接
      *
      * @return
@@ -205,7 +261,7 @@ public class RpcServerPool {
     /**
      * 检查定时链接任务
      */
-    public void checkTask(){
+    public void checkTask() {
         //持续注册 每60s注册一次
         Executors.newSingleThreadScheduledExecutor(r -> {
             Thread thread = new Thread(r, "schedule-register");
@@ -220,7 +276,7 @@ public class RpcServerPool {
                     log.error("注册到服务列表失败", e);
                 }
             }
-        }, 10L, 300L, TimeUnit.SECONDS);
+        }, 100L, 1000L, TimeUnit.SECONDS);
     }
 
     /**
@@ -256,7 +312,8 @@ public class RpcServerPool {
 
     /**
      * 当前服务名链接所有服务
-     * @param nameSpace 名称空间
+     *
+     * @param nameSpace  名称空间
      * @param serverName 服务名
      */
     private void addAllServer(String nameSpace, String serverName) {
@@ -284,9 +341,9 @@ public class RpcServerPool {
      */
     private synchronized void addServer(String serverName, Jedis resource, String key) {
         byte[] resultBytes = resource.get(key.getBytes());
-        ServerDto serverDto = RedisUtil.unserizlize(resultBytes);
-        if (serverDto != null && StringUtils.equals(serverName, serverDto.getServerName())) {
-            serverAdd(serverName, serverDto.getIp(), serverDto.getPort());
+        ServerInfo serverInfo = SerializiUtil.unserizlize(resultBytes);
+        if (serverInfo != null && StringUtils.equals(serverName, serverInfo.getServerName())) {
+            serverAdd(serverName, serverInfo.getIp(), serverInfo.getPort());
         }
     }
 }
