@@ -136,6 +136,7 @@ public class RpcServerPool {
      * 接受到注册消息主动链接服务
      */
     public void initiativeConnectServer(String ip, int port, String serverName) {
+        //过滤掉非引用的服务
         if (!serverMap.containsKey(serverName)) {
             return;
         }
