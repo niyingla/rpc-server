@@ -59,7 +59,7 @@
         <Logger name="org.quartz" level="error" additivity="false"/>
         <Logger name="org.hibernate" level="info" additivity="false"/>
 
-        <Root level="debug" includeLocation="true">
+        <Root level="info" includeLocation="true">
             <AppenderRef ref="console"/>
             <AppenderRef ref="infoFile"/>
             <AppenderRef ref="errorFile"/>
