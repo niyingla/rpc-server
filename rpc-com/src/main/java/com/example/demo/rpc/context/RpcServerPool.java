@@ -120,15 +120,17 @@ public class RpcServerPool {
      *
      * @param serverName
      */
-    public synchronized void reConnect(String serverName) {
-        ArrayListMultimap<String, ChannelFuture> listMultimap = channelMap.get(serverName);
-        //不存在重新链接
-        if (listMultimap == null || listMultimap.valueSize() == 0) {
-            channelMap.remove(serverName);
-            //获取注册列表
-            addAllServer(rpcContext.getRpcSource().getNameSpace(), serverName);
-            //创建连接
-            createConnect(serverName, serverMap.get(serverName));
+    public void reConnect(String serverName) {
+        synchronized (serverName) {
+            ArrayListMultimap<String, ChannelFuture> listMultimap = channelMap.get(serverName);
+            //不存在重新链接
+            if (listMultimap == null || listMultimap.valueSize() == 0) {
+                channelMap.remove(serverName);
+                //获取注册列表
+                addAllServer(rpcContext.getRpcSource().getNameSpace(), serverName);
+                //创建连接
+                createConnect(serverName, serverMap.get(serverName));
+            }
         }
     }
 

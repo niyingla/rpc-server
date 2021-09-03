@@ -5,6 +5,9 @@ import com.example.demo.rpc.context.RpcServerPool;
 import com.example.demo.util.SerializiUtil;
 import redis.clients.jedis.JedisPubSub;
 
+/**
+ * @author huohua
+ */
 public class RegisterPubMsgSub extends JedisPubSub {
     /** JedisPubSub类是一个没有抽象方法的抽象类,里面方法都是一些空实现
      * 所以可以选择需要的方法覆盖,这儿使用的是SUBSCRIBE指令，所以覆盖了onMessage
