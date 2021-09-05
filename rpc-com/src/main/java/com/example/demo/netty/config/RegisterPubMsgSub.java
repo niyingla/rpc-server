@@ -2,6 +2,7 @@ package com.example.demo.netty.config;
 
 import com.example.demo.dto.ServerInfo;
 import com.example.demo.rpc.context.RpcServerPool;
+import com.example.demo.rpc.factory.StartFactory;
 import com.example.demo.util.SerializiUtil;
 import redis.clients.jedis.JedisPubSub;
 
@@ -20,8 +21,10 @@ public class RegisterPubMsgSub extends JedisPubSub {
         Object msg = SerializiUtil.Base64ToObj(message);
         if (msg instanceof ServerInfo) {
             ServerInfo serverInfo = (ServerInfo) msg;
+            //获取连接池
+            RpcServerPool rpcServerPool = StartFactory.getRpcContext().getRpcServerPool();
             //连接服务
-            RpcServerPool.getInstance().initiativeConnectServer(serverInfo.getIp(), serverInfo.getPort(), serverInfo.getServerName());
+            rpcServerPool.initiativeConnectServer(serverInfo.getIp(), serverInfo.getPort(), serverInfo.getServerName());
         }
     }
 }

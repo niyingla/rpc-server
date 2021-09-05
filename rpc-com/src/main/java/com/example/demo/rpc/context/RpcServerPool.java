@@ -45,7 +45,7 @@ public class RpcServerPool {
     /**
      * 当前服务实例
      */
-    private static volatile RpcServerPool instance;
+    private volatile RpcServerPool instance;
 
     /**
      * 上下文对象
@@ -53,8 +53,14 @@ public class RpcServerPool {
     private RpcContext rpcContext;
 
     public RpcServerPool(@NonNull RpcContext rpcContext) {
-        this.rpcContext = rpcContext;
-        this.instance = this;
+        if (this.instance == null) {
+            synchronized (RpcServerPool.class) {
+                if (this.instance == null) {
+                    this.rpcContext = rpcContext;
+                    this.instance = this;
+                }
+            }
+        }
     }
 
     /**
@@ -62,7 +68,7 @@ public class RpcServerPool {
      *
      * @return
      */
-    public static RpcServerPool getInstance() {
+    public RpcServerPool getInstance() {
         return instance;
     }
 
