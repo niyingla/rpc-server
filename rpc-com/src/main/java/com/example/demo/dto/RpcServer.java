@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * @author pikaqiu
  */
-public class RpcServerDto {
+public class RpcServer {
 
     private String name;
     private List<Example> examples = new ArrayList<>();
@@ -43,7 +43,7 @@ public class RpcServerDto {
         }
     }
 
-    public RpcServerDto(String name) {
+    public RpcServer(String name) {
         this.name = name;
     }
 
