@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
+import org.springframework.util.CollectionUtils;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -51,8 +52,9 @@ public class RpcServerPool {
      */
     private RpcContext rpcContext;
 
-    private RpcServerPool(RpcContext rpcContext) {
+    public RpcServerPool(@NonNull RpcContext rpcContext) {
         this.rpcContext = rpcContext;
+        this.instance = new RpcServerPool(rpcContext);
     }
 
     /**
@@ -61,17 +63,6 @@ public class RpcServerPool {
      * @return
      */
     public static RpcServerPool getInstance() {
-        return instance;
-    }
-
-    /**
-     * 获取一个新rpc客户端连接池实例
-     *
-     * @param rpcContext
-     * @return
-     */
-    public static RpcServerPool getNewInstance(@NonNull RpcContext rpcContext) {
-        instance = new RpcServerPool(rpcContext);
         return instance;
     }
 
@@ -109,8 +100,10 @@ public class RpcServerPool {
             NettyClient nettyClient = NettyClient.geInstance();
             //获取服务channel列表
             ArrayListMultimap<String, ChannelFuture> futureList = channelMap.computeIfAbsent(serverName, key -> ArrayListMultimap.create());
+            //本次连接数 = 默认连接数 - 已存在连接数
+            int connectCount = rpcSource.getConnectCount() - futureList.valueSize();
             //创建链接
-            nettyClient.createConnect(rpcSource.getConnectCount(), example.getIp(), example.getPort(), futureList);
+            nettyClient.createConnect(connectCount, example.getIp(), example.getPort(), futureList);
         }
     }
 
@@ -231,9 +224,10 @@ public class RpcServerPool {
      * @param port
      * @return
      */
-    public void serverAdd(String serverName, String ip, int port) {
+    public RpcServer serverAdd(String serverName, String ip, int port) {
         RpcServer serverDto = serverMap.computeIfAbsent(serverName, key -> new RpcServer(serverName));
         serverDto.addExample(ip, port);
+        return serverDto;
     }
 
     /**
@@ -266,7 +260,7 @@ public class RpcServerPool {
             resource = SpringUtil.getBean(JedisPool.class).getResource();
             Set<String> keys = resource.keys(RegisterServer.SERVER_PRE + nameSpace + serverName + ":*");
             for (String key : keys) {
-                //添加一个服务练剑
+                //添加一个服务链接地址
                 addServer(serverName, resource, key);
             }
         } finally {

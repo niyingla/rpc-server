@@ -36,6 +36,7 @@ public class ArrayListMultimap<K, V> {
      */
     public ArrayListMultimap(Integer size) {
         this.map = new ConcurrentHashMap<>(size);
+        this.values = new ArrayList<>();
     }
 
     /**
