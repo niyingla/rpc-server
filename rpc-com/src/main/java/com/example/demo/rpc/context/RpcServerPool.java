@@ -152,36 +152,54 @@ public class RpcServerPool {
     }
 
     /**
-     * 获取一个连接
+     * 获取一个连接(默认 没有连接的时候 重新创建)
      *
      * @return
      */
     public ChannelFuture getChannelByServerName(String serverName) {
-        //获取服务连接池
-        ArrayListMultimap<String, ChannelFuture> listMultimap = channelMap.get(serverName);
-        ChannelFuture channelFuture;
-        //不存在重新链接
-        if (listMultimap == null || listMultimap.valueSize() == 0) {
-            //可以间隔一定时间才进行下一次链接
-            reConnect(serverName);
-            //重新取链接
-            listMultimap = channelMap.get(serverName);
-        }
+        return getChannelByServerName(serverName, true);
+    }
+
+    /**
+     * 获取一个连接
+     * @param serverName 服务名
+     * @param reconnect 是否重连
+     *
+     * @return
+     */
+    public ChannelFuture getChannelByServerName(String serverName, Boolean reconnect) {
+        //获取链接集合
+        ArrayListMultimap<String, ChannelFuture> listMultimap = getChanMap(serverName, reconnect);
+        if (listMultimap == null) return null;
         //随件获取一个链接
-        List<ChannelFuture> channelFutures = listMultimap.values();
-        //随机祛暑下标
-        int index = (int) (Math.random() * (channelFutures.size()));
-        //转数组
-        channelFuture = channelFutures.get(index);
+        ChannelFuture channelFuture = listMultimap.randomValue();
         //链接存活 直接return
         if (channelFuture.channel().isActive()) {
             return channelFuture;
         } else {
             //清空无效链接
             listMultimap.removeElement(serverName, channelFuture);
-            //重新获取一次
-            return getChannelByServerName(serverName);
         }
+        return null;
+    }
+
+    /**
+     * 获取连接集合
+     * @param serverName
+     * @param reconnect
+     * @return
+     */
+    private ArrayListMultimap<String, ChannelFuture> getChanMap(String serverName, Boolean reconnect) {
+        //获取服务连接池
+        ArrayListMultimap<String, ChannelFuture> listMultimap = channelMap.get(serverName);
+        //不存在重新链接
+        if (reconnect && listMultimap == null || listMultimap.valueSize() == 0) {
+            //可以间隔一定时间才进行下一次链接
+            reConnect(serverName);
+            //重新取链接
+            return channelMap.get(serverName);
+        }
+        return null;
     }
 
     /**
