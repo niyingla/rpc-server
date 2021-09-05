@@ -54,7 +54,7 @@ public class RpcServerPool {
 
     public RpcServerPool(@NonNull RpcContext rpcContext) {
         this.rpcContext = rpcContext;
-        this.instance = new RpcServerPool(rpcContext);
+        this.instance = this;
     }
 
     /**
@@ -95,9 +95,9 @@ public class RpcServerPool {
     private void createConnect(String serverName, RpcServer rpcServer) {
         //获取配置
         RpcSource rpcSource = rpcContext.getRpcSource();
+        //获取客户端链接实例
+        NettyClient nettyClient = rpcContext.getNettyClient();
         for (RpcServer.Example example : rpcServer.getExamples()) {
-            //获取客户端链接实例
-            NettyClient nettyClient = NettyClient.geInstance();
             //获取服务channel列表
             ArrayListMultimap<String, ChannelFuture> futureList = channelMap.computeIfAbsent(serverName, key -> ArrayListMultimap.create());
             //本次连接数 = 默认连接数 - 已存在连接数
@@ -136,7 +136,7 @@ public class RpcServerPool {
         }
         log.debug("新服务注册开始连接服务...");
         //获取客户端链接实例
-        NettyClient nettyClient = NettyClient.geInstance();
+        NettyClient nettyClient = rpcContext.getNettyClient();
         //获取服务channel列表
         ArrayListMultimap<String, ChannelFuture> futureList = channelMap.computeIfAbsent(serverName, key -> ArrayListMultimap.create());
         //创建链接
