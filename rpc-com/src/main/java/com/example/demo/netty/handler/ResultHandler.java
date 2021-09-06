@@ -2,7 +2,7 @@
 package com.example.demo.netty.handler;
 
 import com.example.demo.dto.RpcRequestDto;
-import com.example.demo.netty.result.FutureResultNew;
+import com.example.demo.netty.result.FutureResult;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
@@ -19,7 +19,7 @@ public class ResultHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof RpcRequestDto) {
             RpcRequestDto requestDto = (RpcRequestDto) msg;
-            FutureResultNew.removeAndComplete(requestDto.getRequestId(), requestDto.getResult());
+            FutureResult.removeAndComplete(requestDto.getRequestId(), requestDto.getResult());
         }
     }
 }

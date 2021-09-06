@@ -2,7 +2,7 @@ package com.example.demo.util;
 
 import com.example.demo.dto.RpcRequestDto;
 import com.example.demo.netty.connect.NettyClient;
-import com.example.demo.netty.result.FutureResultNew;
+import com.example.demo.netty.result.FutureResult;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ public class ChannelUtils {
   public static Object sendChannelRpcRequest(ChannelFuture channel, RpcRequestDto rpcRequestDto, int retryCount) {
     try {
       //写入结果结合
-      CompletableFuture result = FutureResultNew.getResult(rpcRequestDto.getRequestId());
+      CompletableFuture result = FutureResult.getResult(rpcRequestDto.getRequestId());
       //发送通道数据
       channel.channel().writeAndFlush(rpcRequestDto);
       //等待结果 (5s)
