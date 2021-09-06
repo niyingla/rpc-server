@@ -1,7 +1,7 @@
 package com.example.demo.rpc.context;
 
 import com.example.demo.collection.ArrayListMultimap;
-import com.example.demo.dto.RpcServerDto;
+import com.example.demo.dto.RpcServer;
 import com.example.demo.dto.ServerInfo;
 import com.example.demo.netty.config.RegisterServer;
 import com.example.demo.netty.config.RpcSource;
@@ -14,11 +14,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
+import org.springframework.util.CollectionUtils;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -34,7 +34,7 @@ public class RpcServerPool {
     /**
      * key 服务名 value 初始化链接参数
      */
-    private final Map<String, RpcServerDto> serverMap = new HashMap<>();
+    private final Map<String, RpcServer> serverMap = new HashMap<>();
 
     /**
      * key 服务名 value 链接信息map（key ip+端口 value 连接数组）
@@ -45,15 +45,22 @@ public class RpcServerPool {
     /**
      * 当前服务实例
      */
-    private static volatile RpcServerPool instance;
+    private volatile RpcServerPool instance;
 
     /**
      * 上下文对象
      */
     private RpcContext rpcContext;
 
-    private RpcServerPool(RpcContext rpcContext) {
-        this.rpcContext = rpcContext;
+    public RpcServerPool(@NonNull RpcContext rpcContext) {
+        if (this.instance == null) {
+            synchronized (RpcServerPool.class) {
+                if (this.instance == null) {
+                    this.rpcContext = rpcContext;
+                    this.instance = this;
+                }
+            }
+        }
     }
 
     /**
@@ -61,18 +68,7 @@ public class RpcServerPool {
      *
      * @return
      */
-    public static RpcServerPool getInstance() {
-        return instance;
-    }
-
-    /**
-     * 获取一个新rpc客户端连接池实例
-     *
-     * @param rpcContext
-     * @return
-     */
-    public static RpcServerPool getNewInstance(@NonNull RpcContext rpcContext) {
-        instance = new RpcServerPool(rpcContext);
+    public RpcServerPool getInstance() {
         return instance;
     }
 
@@ -86,9 +82,9 @@ public class RpcServerPool {
         loadServer();
         log.debug("开始连接服务列表...");
         for (String serverName : serverMap.keySet()) {
-            RpcServerDto rpcServerDto = serverMap.get(serverName);
+            RpcServer rpcServer = serverMap.get(serverName);
             //创建链接
-            createConnect(serverName, rpcServerDto);
+            createConnect(serverName, rpcServer);
         }
         log.debug("连接服务完成...");
         //定时检查链接
@@ -100,18 +96,20 @@ public class RpcServerPool {
      * 创建链接
      *
      * @param serverName
-     * @param rpcServerDto
+     * @param rpcServer
      */
-    private void createConnect(String serverName, RpcServerDto rpcServerDto) {
+    private void createConnect(String serverName, RpcServer rpcServer) {
         //获取配置
         RpcSource rpcSource = rpcContext.getRpcSource();
-        for (RpcServerDto.Example example : rpcServerDto.getExamples()) {
-            //获取客户端链接实例
-            NettyClient nettyClient = NettyClient.geInstance();
+        //获取客户端链接实例
+        NettyClient nettyClient = rpcContext.getNettyClient();
+        for (RpcServer.Example example : rpcServer.getExamples()) {
             //获取服务channel列表
             ArrayListMultimap<String, ChannelFuture> futureList = channelMap.computeIfAbsent(serverName, key -> ArrayListMultimap.create());
+            //本次连接数 = 默认连接数 - 已存在连接数
+            int connectCount = rpcSource.getConnectCount() - futureList.valueSize();
             //创建链接
-            nettyClient.createConnect(rpcSource.getConnectCount(), example.getIp(), example.getPort(), futureList);
+            nettyClient.createConnect(connectCount, example.getIp(), example.getPort(), futureList);
         }
     }
 
@@ -144,7 +142,7 @@ public class RpcServerPool {
         }
         log.debug("新服务注册开始连接服务...");
         //获取客户端链接实例
-        NettyClient nettyClient = NettyClient.geInstance();
+        NettyClient nettyClient = rpcContext.getNettyClient();
         //获取服务channel列表
         ArrayListMultimap<String, ChannelFuture> futureList = channelMap.computeIfAbsent(serverName, key -> ArrayListMultimap.create());
         //创建链接
@@ -152,36 +150,40 @@ public class RpcServerPool {
     }
 
     /**
-     * 获取一个连接
+     * 获取一个连接(默认 没有连接的时候 重新创建)
      *
      * @return
      */
     public ChannelFuture getChannelByServerName(String serverName) {
-        //获取服务连接池
-        ArrayListMultimap<String, ChannelFuture> listMultimap = channelMap.get(serverName);
-        ChannelFuture channelFuture;
-        //不存在重新链接
-        if (listMultimap == null || listMultimap.valueSize() == 0) {
-            //可以间隔一定时间才进行下一次链接
-            reConnect(serverName);
-            //重新取链接
-            listMultimap = channelMap.get(serverName);
-        }
+        //获取链接集合
+        ArrayListMultimap<String, ChannelFuture> listMultimap = getChanMap(serverName);
+        if (listMultimap == null) return null;
         //随件获取一个链接
-        List<ChannelFuture> channelFutures = listMultimap.values();
-        //随机祛暑下标
-        int index = (int) (Math.random() * (channelFutures.size()));
-        //转数组
-        channelFuture = channelFutures.get(index);
+        ChannelFuture channelFuture = listMultimap.randomValue();
         //链接存活 直接return
         if (channelFuture.channel().isActive()) {
             return channelFuture;
         } else {
             //清空无效链接
             listMultimap.removeElement(serverName, channelFuture);
-            //重新获取一次
-            return getChannelByServerName(serverName);
         }
+        return null;
+    }
+
+    /**
+     * 获取连接集合
+     * @param serverName
+     * @return
+     */
+    private ArrayListMultimap<String, ChannelFuture> getChanMap(String serverName) {
+        //获取服务连接池
+        ArrayListMultimap<String, ChannelFuture> listMultimap = channelMap.get(serverName);
+        //不存在重新链接
+        if (listMultimap == null || listMultimap.valueSize() == 0) {
+            //可以间隔一定时间才进行下一次链接
+            reConnect(serverName);
+        }
+        return channelMap.get(serverName);
     }
 
     /**
@@ -189,13 +191,13 @@ public class RpcServerPool {
      */
     public void checkConnect() {
         for (String serverName : serverMap.keySet()) {
-            RpcServerDto rpcServerDto = serverMap.get(serverName);
+            RpcServer rpcServer = serverMap.get(serverName);
             //清湖已经存在的实例集合
-            rpcServerDto.clearExamples();
+            rpcServer.clearExamples();
             //加载当前服务链接
             addAllServer(rpcContext.getRpcSource().getNameSpace(), serverName);
             //创建连接
-            createConnect(serverName, rpcServerDto);
+            createConnect(serverName, rpcServer);
         }
     }
 
@@ -228,9 +230,10 @@ public class RpcServerPool {
      * @param port
      * @return
      */
-    public void serverAdd(String serverName, String ip, int port) {
-        RpcServerDto serverDto = serverMap.computeIfAbsent(serverName, key -> new RpcServerDto(serverName));
+    public RpcServer serverAdd(String serverName, String ip, int port) {
+        RpcServer serverDto = serverMap.computeIfAbsent(serverName, key -> new RpcServer(serverName));
         serverDto.addExample(ip, port);
+        return serverDto;
     }
 
     /**
@@ -239,7 +242,7 @@ public class RpcServerPool {
      * @param serverName
      */
     public void addServerName(String serverName) {
-        serverMap.putIfAbsent(serverName, new RpcServerDto(serverName));
+        serverMap.putIfAbsent(serverName, new RpcServer(serverName));
     }
 
     /**
@@ -263,7 +266,7 @@ public class RpcServerPool {
             resource = SpringUtil.getBean(JedisPool.class).getResource();
             Set<String> keys = resource.keys(RegisterServer.SERVER_PRE + nameSpace + serverName + ":*");
             for (String key : keys) {
-                //添加一个服务练剑
+                //添加一个服务链接地址
                 addServer(serverName, resource, key);
             }
         } finally {

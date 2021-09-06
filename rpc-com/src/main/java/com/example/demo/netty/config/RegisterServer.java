@@ -70,6 +70,7 @@ public class RegisterServer {
             return thread;
         }).scheduleWithFixedDelay(() -> {
             try {
+                //注册服务
                 registerServer(rpcSource.getNameSpace(), serverInfo);
             } catch (Exception e) {
                 log.error("注册到服务列表失败", e);

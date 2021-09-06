@@ -4,6 +4,7 @@ import com.example.demo.annotation.RpcServerCase;
 import com.example.demo.factory.ProxyFactory;
 import com.example.demo.netty.config.RegisterServer;
 import com.example.demo.netty.config.RpcSource;
+import com.example.demo.netty.connect.NettyClient;
 import com.example.demo.netty.connect.NettyServer;
 import com.example.demo.rpc.context.RpcContext;
 import com.example.demo.rpc.context.RpcServerPool;
@@ -92,9 +93,11 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
         //2 注入配置
         rpcContext.setRpcSource(rpcSource);
         //初始连接池
-        rpcContext.setRpcServerPool(RpcServerPool.getNewInstance(rpcContext));
+        rpcContext.setRpcServerPool(new RpcServerPool(rpcContext));
         //设置spring上下文
         rpcContext.setApplicationContext(applicationContext);
+        //初始化粗护垫对象
+        rpcContext.setNettyClient(NettyClient.geInstance());
         return rpcContext;
     }
 

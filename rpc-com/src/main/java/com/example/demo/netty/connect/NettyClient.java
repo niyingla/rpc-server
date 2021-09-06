@@ -97,11 +97,6 @@ public class NettyClient {
     public NettyClient createConnect(int count, String ip, int port, ArrayListMultimap<String, ChannelFuture> channelFuturesMultimap) {
         String channelKey = ip + ":" + port;
         //获取当前server地址连接列表 key（ip + ":" + port） value （ChannelFuture 数组）
-        List<ChannelFuture> channelFutures = channelFuturesMultimap.get(channelKey);
-        //已经存在就不连接了
-        if (!CollectionUtils.isEmpty(channelFutures)) {
-            return this;
-        }
         log.debug("创建连接 ip: {} ,port: {}", ip, port);
         //循环创建连接
         for (int i = 0; i < count; i++) {

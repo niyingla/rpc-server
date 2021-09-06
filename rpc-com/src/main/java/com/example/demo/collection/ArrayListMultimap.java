@@ -1,6 +1,7 @@
 package com.example.demo.collection;
 
 import com.example.demo.dto.ImmutablePair;
+import io.netty.channel.ChannelFuture;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
@@ -35,6 +36,7 @@ public class ArrayListMultimap<K, V> {
      */
     public ArrayListMultimap(Integer size) {
         this.map = new ConcurrentHashMap<>(size);
+        this.values = new ArrayList<>();
     }
 
     /**
@@ -57,6 +59,7 @@ public class ArrayListMultimap<K, V> {
 
     /**
      * 获取或默认
+     *
      * @param key
      * @return
      */
@@ -140,6 +143,21 @@ public class ArrayListMultimap<K, V> {
 
     public List<V> values() {
         return values;
+    }
+
+    /**
+     * 随机获取值
+     *
+     * @return
+     */
+    public V randomValue() {
+        if (CollectionUtils.isEmpty(values)) {
+            return null;
+        }
+        //随机祛暑下标
+        int index = (int) (Math.random() * (values.size()));
+        //转数组
+        return values.get(index);
     }
 
     public List<K> keys() {
