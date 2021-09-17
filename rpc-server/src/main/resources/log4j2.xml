@@ -6,7 +6,7 @@
 
     <properties>
         <Property name="fileName">./logs</Property>
-        <Property name="serverName">demo</Property>
+        <Property name="serverName">server-demo</Property>
         <Property name="LOG_PATTERN">%d{yyyy-MM-dd HH:mm:ss,SSS} %t %5p %c{1}:%L - %m%n</Property>
     </properties>
 

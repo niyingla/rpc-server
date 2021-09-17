@@ -20,7 +20,7 @@ public class RpcSource {
      */
     private int port = 33333;
 
-    private String nameSpace = "nameSpace";
+    private String nameSpace = "nameSpace1";
 
     private String serverName;
 
