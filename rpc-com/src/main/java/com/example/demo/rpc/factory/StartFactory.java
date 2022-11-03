@@ -25,6 +25,7 @@ import java.util.Map;
 @Order(-1)
 public class StartFactory implements ApplicationListener<ApplicationStartedEvent> {
 
+
     /**
      * 当前上下文
      */
@@ -66,6 +67,9 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
      */
     @Override
     public void onApplicationEvent(ApplicationStartedEvent applicationEvent) {
+        if(!rpcContext.getEnableRpc()){
+            return;
+        }
         //1 设置上下文
         setContext(applicationEvent);
         //2 启动客户端
@@ -95,7 +99,9 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
      * @param registry
      */
     public RpcContext setContextBean(ConfigurableListableBeanFactory registry) {
-        //1 设置bean工厂上下文
+        //开启rpc
+        rpcContext.setEnableRpc(Boolean.TRUE);
+        //设置bean工厂上下文
         rpcContext.setDefaultListableBeanFactory(registry);
         //初始连接池
         rpcContext.setRpcServerPool(new RpcServerPool(rpcContext));

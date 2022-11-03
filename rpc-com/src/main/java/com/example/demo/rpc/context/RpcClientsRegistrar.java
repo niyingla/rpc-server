@@ -2,12 +2,9 @@ package com.example.demo.rpc.context;
 
 import com.example.demo.annotation.EnableRpc;
 import com.example.demo.rpc.factory.StartFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanNameGenerator;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
 import org.springframework.core.type.AnnotationMetadata;
 
@@ -18,9 +15,7 @@ import org.springframework.core.type.AnnotationMetadata;
  * @version 1.0
  * @date 2022/11/3 14:12
  */
-public class RpcClientsRegistrar implements ImportBeanDefinitionRegistrar, ApplicationContextAware {
-
-  private ApplicationContext applicationContext;
+public class RpcClientsRegistrar implements ImportBeanDefinitionRegistrar{
 
   @Override
   public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry, BeanNameGenerator importBeanNameGenerator) {
@@ -31,8 +26,4 @@ public class RpcClientsRegistrar implements ImportBeanDefinitionRegistrar, Appli
     startFactory.registerRpcServer(rpcContext, (String) importingClassMetadata.getAnnotationAttributes(EnableRpc.class.getName(), true).get("classPath"));
   }
 
-  @Override
-  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-    this.applicationContext = applicationContext;
-  }
 }

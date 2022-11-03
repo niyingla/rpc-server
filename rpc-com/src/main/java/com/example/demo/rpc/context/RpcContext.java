@@ -37,6 +37,11 @@ public class RpcContext {
      */
     private NettyClient nettyClient;
 
+    /**
+     * 是否开启rpc
+     */
+    private Boolean enableRpc = false;
+
     public RpcServerPool getRpcServerPool() {
         return rpcServerPool;
     }
@@ -87,5 +92,13 @@ public class RpcContext {
 
     public void setNettyClient(NettyClient nettyClient) {
         this.nettyClient = nettyClient;
+    }
+
+    public Boolean getEnableRpc() {
+        return enableRpc;
+    }
+
+    public void setEnableRpc(Boolean enableRpc) {
+        this.enableRpc = enableRpc;
     }
 }
