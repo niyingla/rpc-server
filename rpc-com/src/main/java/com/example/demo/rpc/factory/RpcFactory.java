@@ -82,7 +82,7 @@ public class RpcFactory<T> implements InvocationHandler {
                             e.printStackTrace();
                         }
                     }
-                    return aspect;
+                    return null;
                 }).filter(Objects::nonNull)
                 //注解排序
                 .sorted(Comparator.comparing(item -> {

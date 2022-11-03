@@ -2,7 +2,7 @@ package com.example.demo.dto;
 
 
 /**
- * @author 10479
+ * @author pikaqiu
  */
 public class ImmutablePair<L, R> {
     public L left;

@@ -8,7 +8,7 @@ public class RpcSource {
     /**
      * 默认扫描路径
      */
-    private String classPtah = "com.example.demo";
+//    private String classPtah = "com.example.demo";
 
     /**
      * 默认连接数
@@ -42,14 +42,6 @@ public class RpcSource {
 
     public void setCommonRecAspect(String[] commonRecAspect) {
         this.commonRecAspect = commonRecAspect;
-    }
-
-    public String getClassPtah() {
-        return classPtah;
-    }
-
-    public void setClassPtah(String classPtah) {
-        this.classPtah = classPtah;
     }
 
     public Integer getConnectCount() {
