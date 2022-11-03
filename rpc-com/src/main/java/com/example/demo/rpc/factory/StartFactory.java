@@ -67,7 +67,7 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
     /**
      * 通过扫描获取所有rpc代理类
      */
-    public synchronized void registerRpcServer(RpcContext rpcContext, BeanDefinitionRegistry registry, String classPtah) {
+    public synchronized void registerRpcServer(BeanDefinitionRegistry registry, String classPtah) {
         // 需要加載实例列表和服务列表
         Map<Class, RpcServerCase> rpcInterFace = ScannerUtils.getAnnotations(RpcServerCase.class, classPtah);
         //循环注入代理对象到spring 并将调用服务写到列表
