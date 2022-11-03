@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.CompareDto;
+import com.example.demo.service.TestService;
 import com.example.demo.service.UserInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,8 +18,12 @@ public class TestController {
     @Autowired
     private UserInfoService userInfoService;
 
+    @Autowired
+    private TestService testService;
+
     @GetMapping("getCompareDto")
-    public CompareDto getCompareDto(@RequestParam String type){
+    public CompareDto getCompareDto(@RequestParam String type) {
+        System.out.println(testService.test());
         return userInfoService.getCompareDto(type);
     }
 

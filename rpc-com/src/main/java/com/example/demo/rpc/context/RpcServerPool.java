@@ -241,7 +241,7 @@ public class RpcServerPool {
      * @param serverName
      */
     public void addServerName(String serverName) {
-        serverMap.putIfAbsent(serverName, new RpcServer(serverName));
+        serverMap.computeIfAbsent(serverName, name -> new RpcServer(name));
     }
 
     /**

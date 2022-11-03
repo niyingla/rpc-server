@@ -2,6 +2,7 @@ package com.example.demo.rpc.factory;
 
 import com.example.demo.annotation.RpcServerCase;
 import com.example.demo.factory.ProxyFactory;
+import com.example.demo.factory.RpcFactoryBean;
 import com.example.demo.netty.config.RegisterServer;
 import com.example.demo.netty.config.RpcSource;
 import com.example.demo.netty.connect.NettyClient;
@@ -12,6 +13,9 @@ import com.example.demo.util.LocalStringUtils;
 import com.example.demo.util.ScannerUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -57,6 +61,22 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
             setBean(rpcContext, entry.getKey());
             //写入连接服务列表
             rpcServerPool.addServerName(entry.getValue().serverName());
+        }
+    }
+
+    /**
+     * 通过扫描获取所有rpc代理类
+     */
+    public synchronized void registerRpcServer(RpcContext rpcContext, BeanDefinitionRegistry registry, String classPtah) {
+        // 需要加載实例列表和服务列表
+        Map<Class, RpcServerCase> rpcInterFace = ScannerUtils.getAnnotations(RpcServerCase.class, classPtah);
+        //循环注入代理对象到spring 并将调用服务写到列表
+        for (Map.Entry<Class, RpcServerCase> entry : rpcInterFace.entrySet()) {
+            BeanDefinitionBuilder definition = BeanDefinitionBuilder.genericBeanDefinition(RpcFactoryBean.class);
+            definition.addPropertyValue("type", entry.getKey());
+            definition.setPrimary(Boolean.TRUE);
+            AbstractBeanDefinition beanDefinition = definition.getBeanDefinition();
+            registry.registerBeanDefinition(LocalStringUtils.lowerFirst(entry.getKey().getSimpleName()), beanDefinition);
         }
     }
 

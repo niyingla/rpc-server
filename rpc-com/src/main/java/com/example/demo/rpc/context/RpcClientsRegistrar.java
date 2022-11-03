@@ -23,7 +23,7 @@ public class RpcClientsRegistrar implements ImportBeanDefinitionRegistrar{
     //1 设置上下文
     RpcContext rpcContext = startFactory.setContextBean((ConfigurableListableBeanFactory) registry);
     //2 启动服务端
-    startFactory.registerRpcServer(rpcContext, (String) importingClassMetadata.getAnnotationAttributes(EnableRpc.class.getName(), true).get("classPath"));
+    startFactory.registerRpcServer(rpcContext, registry,(String) importingClassMetadata.getAnnotationAttributes(EnableRpc.class.getName(), true).get("classPath"));
   }
 
 }
