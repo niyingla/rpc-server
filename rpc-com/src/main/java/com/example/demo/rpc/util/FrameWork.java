@@ -5,10 +5,6 @@ import com.example.demo.rpc.factory.StartFactory;
 import com.example.demo.util.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -36,7 +32,7 @@ public class FrameWork {
         ClassLoader loader = Thread.currentThread().getContextClassLoader();
         //获取类实例
         Class clazz = loader.loadClass(classPathStr);
-        Object contextBean = StartFactory.getRpcContext().getApplicationContext().getBean(clazz);
+        Object contextBean = StartFactory.getRpcContext().getBeanFactory().getBean(clazz);
         //获取参数类型
         Class[] classType = ClassUtils.getClassType(param);
         Method method = clazz.getMethod(methodStr, classType);

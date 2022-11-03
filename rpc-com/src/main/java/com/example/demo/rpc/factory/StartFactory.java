@@ -51,6 +51,7 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
     /**
      * 通过扫描获取所有rpc代理类
      */
+    @Deprecated
     public synchronized void registerRpcServer(RpcContext rpcContext, String classPtah) {
         RpcServerPool rpcServerPool = rpcContext.getRpcServerPool();
         // 需要加載实例列表和服务列表
@@ -110,7 +111,6 @@ public class StartFactory implements ApplicationListener<ApplicationStartedEvent
             applicationContext.getEnvironment().getProperty("spring.application.name") : rpcSource.getServerName());
         //2 注入配置
         rpcContext.setRpcSource(rpcSource);
-        rpcContext.setApplicationContext(applicationEvent.getApplicationContext());
     }
 
     /**
