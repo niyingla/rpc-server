@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class ReqAspect implements ClientAspect {
-    ThreadLocal<Long> threadLocal = new ThreadLocal();
+    private ThreadLocal<Long> threadLocal = new ThreadLocal();
 
     @Override
     public void before(RpcRequestDto requestDto) {
