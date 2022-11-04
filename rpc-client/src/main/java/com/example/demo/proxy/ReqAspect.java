@@ -10,15 +10,16 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class ReqAspect implements ClientAspect {
+    ThreadLocal<Long> threadLocal = new ThreadLocal();
 
     @Override
     public void before(RpcRequestDto requestDto) {
-        requestDto.setOther(System.currentTimeMillis());
+        threadLocal.set(System.currentTimeMillis());
     }
 
     @Override
     public void after(RpcRequestDto requestDto) {
-        long time = (long) requestDto.getOther();
+        Long time = threadLocal.get();
         log.debug("请求id：{}, 本次请求花费：{}ms", requestDto.getRequestId(), System.currentTimeMillis() - time);
     }
 }

@@ -24,15 +24,15 @@ public class RpcFactory<T> implements InvocationHandler {
 
     private Class<T> rpcInterface;
 
+    private Class[] proxyClasss;
+
     private List<Aspect> aspectInsts;
 
-    public RpcFactory(Class<T>  rpcInterface) {
+    public RpcFactory(Class<T> rpcInterface) {
         this.rpcInterface = rpcInterface;
         //参数对象转换成能字节  远程调用
         RpcServerCase rpcServerCase = rpcInterface.getAnnotation(RpcServerCase.class);
-        Class[] proxyClasss = rpcServerCase.proxyClass();
-        //获取漆面对象
-        aspectInsts = getAspects(proxyClasss);
+        proxyClasss = rpcServerCase.proxyClass();
     }
 
     @Override
@@ -48,7 +48,8 @@ public class RpcFactory<T> implements InvocationHandler {
         }
         //构建请求信息
         RpcRequestDto rpcRequestDto = new RpcRequestDto(UUID.randomUUID().toString(), rpcInterface.getName(), method.getName(), args);
-
+        //执行切面方法
+        List<Aspect> aspectInsts = getAspects(proxyClasss);
         //切面前置请求
         for (Aspect aspect : aspectInsts) {
             aspect.before(rpcRequestDto);
@@ -65,30 +66,35 @@ public class RpcFactory<T> implements InvocationHandler {
 
     /**
      * 获取切面对象
+     *
      * @param proxyClasss
      * @return
      */
-    private static List<Aspect> getAspects(Class[] proxyClasss) {
-        List<Aspect> aspectInsts = Arrays.stream(proxyClasss)
-                //循环获取切面类对象
-                .map(proxyClass -> {
-                    Aspect aspect = (Aspect) SpringUtil.getBeanOrNull(proxyClass);
-                    if (aspect == null) {
-                        try {
-                            return (Aspect) proxyClass.newInstance();
-                        } catch (InstantiationException e) {
-                            e.printStackTrace();
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
+    private List<Aspect> getAspects(Class[] proxyClasss) {
+        if (aspectInsts != null) {
+            return aspectInsts;
+        }
+        this.aspectInsts = Arrays.stream(proxyClasss)
+            //循环获取切面类对象
+            .map(proxyClass -> {
+                Aspect aspect = (Aspect) SpringUtil.getBeanOrNull(proxyClass);
+                if (aspect == null) {
+                    try {
+                        return (Aspect) proxyClass.newInstance();
+                    } catch (InstantiationException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
                     }
-                    return null;
-                }).filter(Objects::nonNull)
-                //注解排序
-                .sorted(Comparator.comparing(item -> {
-                    Order annotation = item.getClass().getAnnotation(Order.class);
-                    return annotation != null ? annotation.value() : Integer.MAX_VALUE;
-                })).collect(Collectors.toList());
+                }
+                return aspect;
+            }).filter(Objects::nonNull)
+            //注解排序
+            .sorted(Comparator.comparing(item -> {
+                Order annotation = item.getClass().getAnnotation(Order.class);
+                return annotation != null ? annotation.value() : Integer.MAX_VALUE;
+            })).collect(Collectors.toList());
+
         return aspectInsts;
     }
 

@@ -1,7 +1,5 @@
 package com.example.demo.util;
 
-import org.springframework.util.ResourceUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -167,9 +165,4 @@ public class ScannerUtils {
         }
     }
 
-    public static void main(String[] args) throws Exception{
-        String path = ResourceUtils.getURL("classpath:").getPath();
-        System.out.println(path);
-
-    }
 }
