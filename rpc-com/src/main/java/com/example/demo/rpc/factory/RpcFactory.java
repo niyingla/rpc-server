@@ -5,6 +5,8 @@ import com.example.demo.dto.RpcRequestDto;
 import com.example.demo.inteface.Aspect;
 import com.example.demo.rpc.util.RpcClient;
 import com.example.demo.rpc.util.SpringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 
 import java.lang.reflect.InvocationHandler;
@@ -21,6 +23,8 @@ import java.util.stream.Collectors;
 
 
 public class RpcFactory<T> implements InvocationHandler {
+
+    static Logger log = LoggerFactory.getLogger(RpcFactory.class.getName());
 
     private Class<T> rpcInterface;
 
@@ -81,10 +85,8 @@ public class RpcFactory<T> implements InvocationHandler {
                 if (aspect == null) {
                     try {
                         return (Aspect) proxyClass.newInstance();
-                    } catch (InstantiationException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+                    } catch (Exception e) {
+                        log.error("实例化代理类失败", e);
                     }
                 }
                 return aspect;
