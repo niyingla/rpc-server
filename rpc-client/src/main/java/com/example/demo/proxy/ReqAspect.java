@@ -18,7 +18,7 @@ public class ReqAspect implements ClientAspect {
     }
 
     @Override
-    public void after(RpcRequestDto requestDto) {
+    public void after(RpcRequestDto requestDto, Object result) {
         Long time = threadLocal.get();
         log.debug("请求id：{}, 本次请求花费：{}ms", requestDto.getRequestId(), System.currentTimeMillis() - time);
     }

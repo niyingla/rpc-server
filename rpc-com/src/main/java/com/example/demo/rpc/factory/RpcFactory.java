@@ -40,7 +40,7 @@ public class RpcFactory<T> implements InvocationHandler {
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object invoke(Object proxy, Method method, Object[] args) {
         //判断是否是接口自定义方法
         Method[] declaredMethods = rpcInterface.getDeclaredMethods();
         if (Arrays.asList(declaredMethods).indexOf(method) < 0) {
@@ -60,10 +60,9 @@ public class RpcFactory<T> implements InvocationHandler {
         }
         //发起rpc远程请求
         Object result = RpcClient.sendRpcRequest(rpcInterface, rpcRequestDto);
-
         //切面后置请求
         for (Aspect aspect : aspectInsts) {
-            aspect.after(rpcRequestDto);
+            aspect.after(rpcRequestDto, result);
         }
         return result;
     }
